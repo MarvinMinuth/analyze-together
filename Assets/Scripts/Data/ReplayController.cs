@@ -50,10 +50,11 @@ public class ReplayController : MonoBehaviour
 
     public bool loadReplayOnStart = false;
 
-    [SerializeField] private ReplaySO loadOnStartReplaySO;
-    private ReplayManager replayManager;
+    [SerializeField] private RecordingSO loadOnStartReplaySO;
+    private RecordingManager recordingManager;
 
-    private bool isRunning;
+    private bool isDataLoaded = false;
+    private bool isPlaying;
     private bool isLooping;
     private bool isReceivingInput;
     private bool replayWindowChanged = false;
@@ -69,7 +70,7 @@ public class ReplayController : MonoBehaviour
 
     private void Awake()
     {
-        if(Instance == null)
+        if (Instance == null)
         {
             Instance = this;
         }
@@ -80,9 +81,9 @@ public class ReplayController : MonoBehaviour
     }
     void Start()
     {
-        replayManager = ReplayManager.Instance;
+        recordingManager = RecordingManager.Instance;
 
-        replayManager.OnReplayLoaded += ReplayManager_OnReplayLoaded;
+        recordingManager.OnRecordingLoaded += RecordingManager_OnRecordingLoaded;
 
         //FighterLoader.Instance.OnFighterInPosition += FighterLoader_OnFighterInPosition;
     }
@@ -93,11 +94,18 @@ public class ReplayController : MonoBehaviour
         Play();
     }
 
-    private void ReplayManager_OnReplayLoaded(object sender, ReplayManager.OnReplayLoadedEventArgs e)
+    private void RecordingManager_OnRecordingLoaded(object sender, RecordingManager.OnRecordingLoadedEventArgs e)
     {
-        totalFrames = replayManager.GetReplayLength();
-        Pause();
-        ResetReplayWindow();
+        totalFrames = recordingManager.GetMaxFrame() + 1;
+        maxPlayFrame = recordingManager.GetMaxFrame();
+
+        OnReplayWindowSet?.Invoke(this, new OnReplayWindowSetEventArgs
+        {
+            minReplayWindowFrame = minPlayFrame,
+            maxReplayWindowFrame = maxPlayFrame
+        });
+
+        isDataLoaded = true;
 
         OnReplayDataReady?.Invoke(this, EventArgs.Empty);
 
@@ -108,22 +116,15 @@ public class ReplayController : MonoBehaviour
 
     private void Update()
     {
-        if (loadReplayOnStart) 
-        {
-            //FighterLoader.Instance.LoadReplay(loadOnStartLoadingStatueSO.saveFile);
-            replayManager.Load(loadOnStartReplaySO);
-            loadReplayOnStart = false;
-        }
-
-        if (!isRunning)
+        if (!isPlaying)
         {
             return;
         }
-        // Überprüfe, ob 1/60 Sekunde vergangen ist
+        // ï¿½berprï¿½fe, ob 1/60 Sekunde vergangen ist
         if (Time.time >= nextUpdate)
         {
             LoadNextFrame();
-            // Berechne den Zeitpunkt des nächsten Updates
+            // Berechne den Zeitpunkt des nï¿½chsten Updates
             nextUpdate = Time.time + (1f / (60f * playSpeed));
         }
     }
@@ -132,7 +133,7 @@ public class ReplayController : MonoBehaviour
     {
         switch (speed)
         {
-            case Speed.Normal:  playSpeed = 1f; break;
+            case Speed.Normal: playSpeed = 1f; break;
             case Speed.Half: playSpeed = 0.5f; break;
             case Speed.Double: playSpeed = 2f; break;
         }
@@ -140,24 +141,40 @@ public class ReplayController : MonoBehaviour
         OnSpeedChangedEventArgs args = new OnSpeedChangedEventArgs { speed = speed };
         OnSpeedChanged?.Invoke(this, args);
     }
+
     public void Play()
     {
-        if (!replayManager.FileIsLoaded())
+        if (!isDataLoaded)
         {
             Debug.Log("No file loaded");
             return;
         }
 
-        isRunning = true;
+        isPlaying = true;
         OnPlay?.Invoke(this, EventArgs.Empty);
     }
+
     public void Pause()
     {
-        isRunning = false;
+        if (!isDataLoaded)
+        {
+            Debug.Log("No file loaded");
+            return;
+        }
+
+        isPlaying = false;
         OnPause?.Invoke(this, EventArgs.Empty);
     }
+
     public void Stop()
     {
+        // pauses replay, resets all options
+        if (!isDataLoaded)
+        {
+            Debug.Log("No file loaded");
+            return;
+        }
+
         Pause();
         ResetReplayWindow();
         SetFrame(0);
@@ -167,11 +184,12 @@ public class ReplayController : MonoBehaviour
 
         OnStop?.Invoke(this, EventArgs.Empty);
     }
-    public void Load(ReplaySO replaySO)
-    {
-        if (replayManager.FileIsLoaded()) { Unload(); }
 
-        replayManager.Load(replaySO);
+    public void Load(RecordingSO replaySO)
+    {
+        if (isDataLoaded) { Unload(); }
+
+        recordingManager.Load(replaySO);
 
         OnReplayControllerLoaded?.Invoke(this, EventArgs.Empty);
     }
@@ -180,7 +198,14 @@ public class ReplayController : MonoBehaviour
 
     public void SetFrame(int newFrame)
     {
+        if (!isDataLoaded)
+        {
+            Debug.Log("No file loaded");
+            return;
+        }
+
         activeFrame = AdjustToWindow(newFrame);
+
         OnFrameChanged?.Invoke(this, new OnFrameChangedEventArgs
         {
             frame = activeFrame
@@ -203,7 +228,7 @@ public class ReplayController : MonoBehaviour
     public void LoadNextFrame()
     {
         int nextFrame = activeFrame;
-        if (playDirection == Direction.Forwards) 
+        if (playDirection == Direction.Forwards)
         {
             nextFrame += 1;
             if (nextFrame >= totalFrames)
@@ -217,7 +242,7 @@ public class ReplayController : MonoBehaviour
                     Stop();
                 }
             }
-            else if (activeFrame >= maxPlayFrame)
+            else if (nextFrame >= maxPlayFrame)
             {
                 if (isLooping)
                 {
@@ -259,39 +284,38 @@ public class ReplayController : MonoBehaviour
             {
                 SetFrame(nextFrame);
             }
-        }   
+        }
     }
 
     public void Unload()
     {
         Stop();
         OnReplayControllerUnload?.Invoke(this, EventArgs.Empty);
-  
+
         minPlayFrame = 0;
         totalFrames = 0;
         maxPlayFrame = 0;
-        //heartrateCoordinator.ResetCoordinator();
-        replayManager.Unload();  
+        recordingManager.Unload();
     }
 
-    public bool IsRunning()
+    public bool IsPlaying()
     {
-        return isRunning;
+        return isPlaying;
     }
 
     public int GetReplayLength()
     {
-        return replayManager.GetReplayLength();
+        return recordingManager.GetMaxFrame() + 1;
     }
 
     public bool IsReplayReady()
     {
-        return (!replayManager.IsLoading() && replayManager.FileIsLoaded());
+        return (isDataLoaded);
     }
 
     public void ChangeLooping()
     {
-        if(isLooping) isLooping = false;
+        if (isLooping) isLooping = false;
         else isLooping = true;
 
         OnRepeat?.Invoke(this, EventArgs.Empty);
@@ -301,6 +325,7 @@ public class ReplayController : MonoBehaviour
         isLooping = shouldLoop;
         OnRepeat?.Invoke(this, EventArgs.Empty);
     }
+
     public void ChangeDirection()
     {
         if (playDirection == Direction.Forwards) playDirection = Direction.Backwards;
@@ -323,7 +348,7 @@ public class ReplayController : MonoBehaviour
 
     public bool IsControllable()
     {
-        return (IsReplayReady() && !isReceivingInput);
+        return (isDataLoaded && !isReceivingInput);
     }
 
     public void SetReceivingInput(bool isReceivingInput)
@@ -335,6 +360,10 @@ public class ReplayController : MonoBehaviour
     {
         minPlayFrame = Mathf.Min(minFrame, maxFrame);
         maxPlayFrame = Mathf.Max(minFrame, maxFrame);
+
+        if (activeFrame < minPlayFrame) SetFrame(minPlayFrame);
+        if (activeFrame > maxPlayFrame) SetFrame(maxPlayFrame);
+
         replayWindowChanged = true;
 
         OnReplayWindowSet(this, new OnReplayWindowSetEventArgs
@@ -347,7 +376,7 @@ public class ReplayController : MonoBehaviour
     public void ResetReplayWindow()
     {
         minPlayFrame = 0;
-        maxPlayFrame = totalFrames;
+        maxPlayFrame = totalFrames - 1;
         replayWindowChanged = false;
 
         OnReplayWindowReset?.Invoke(this, EventArgs.Empty);
@@ -355,11 +384,34 @@ public class ReplayController : MonoBehaviour
 
     public bool ManagerIsLoading()
     {
-        return replayManager.IsLoading();
+        return recordingManager.IsLoading();
     }
 
     public bool IsReplayWindowChanged()
     {
         return replayWindowChanged;
+    }
+
+    public void LoadOnStartReplay()
+    {
+        Debug.Log("Load on start Replay");
+        Load(loadOnStartReplaySO);
+    }
+
+    public void ChangePlayPause()
+    {
+        isPlaying = !isPlaying;
+    }
+
+    public Savefile GetLoadedSavefile()
+    {
+        if (totalFrames != 0)
+        {
+            return Savefile.Tutorial;
+        }
+        else
+        {
+            return Savefile.None;
+        }
     }
 }

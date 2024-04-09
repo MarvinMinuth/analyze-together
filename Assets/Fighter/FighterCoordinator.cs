@@ -1,14 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Animations;
 
-public class FighterCoordinator : MonoBehaviour
+public class FighterCoordinator : NetworkBehaviour
 {
     public static FighterCoordinator Instance {  get; private set; }
 
-    private ReplayManager replayManager;
+    private RecordingManager replayManager;
     private ReplayController replayController;
 
     [SerializeField] private Material idleMaterial;
@@ -17,7 +18,7 @@ public class FighterCoordinator : MonoBehaviour
     [SerializeField] private FighterVisuals fighterVisuals;
     [SerializeField] private Transform headTransform, leftHandTransform, rightHandTransform;
 
-    private ReplaySO loadedReplaySO;
+    private RecordingSO loadedReplaySO;
     private bool fighterMovementEnabled = true;
 
     private List<TransformLog> headTransformLogs;
@@ -41,16 +42,18 @@ public class FighterCoordinator : MonoBehaviour
     }
     private void Start()
     {
-        replayController = ReplayController.Instance;
-        replayManager = ReplayManager.Instance;
+        if (IsServer)
+        {
+            replayController = ReplayController.Instance;
+            replayManager = RecordingManager.Instance;
 
-        replayController.OnReplayDataReady += ReplayController_OnReplayDataReady;
-        replayController.OnFrameChanged += ReplayController_OnFrameChanged;
-        replayController.OnReplayControllerUnload += ReplayController_OnReplayControllerUnload;
+            replayController.OnReplayDataReady += ReplayController_OnReplayDataReady;
+            replayController.OnFrameChanged += ReplayController_OnFrameChanged;
+            replayController.OnReplayControllerUnload += ReplayController_OnReplayControllerUnload;
 
-        //FighterLoader.Instance.OnFighterInPosition += FighterLoader_OnFighterInPosition;
-
-        fighterVisuals.Hide();
+            //FighterLoader.Instance.OnFighterInPosition += FighterLoader_OnFighterInPosition;
+            fighterVisuals.Hide();
+        }
 
         offset = offsetTransform.localPosition - fightingSceneTransform.position;
     }
@@ -69,17 +72,30 @@ public class FighterCoordinator : MonoBehaviour
     {
         if (!fighterMovementEnabled) return;
         //transform.position = new Vector3(e.headTransformLog.Position.x, 0, e.headTransformLog.Position.z);
+        int newFrame = e.frame;
 
         headTransform.position = headTransformLogs[e.frame].Position - offset;
         headTransform.rotation = Quaternion.Euler(headTransformLogs[e.frame].Rotation);
 
-        leftHandTransform.position = leftHandTransformLogs[e.frame].Position - offset;
-        leftHandTransform.rotation = Quaternion.Euler(leftHandTransformLogs[e.frame].Rotation);
+        if (newFrame >= leftHandTransformLogs.Count){
+            newFrame = leftHandTransformLogs.Count - 1;
+        }
+        if ( newFrame < 0){
+            newFrame = 0;
+        }
+        leftHandTransform.position = leftHandTransformLogs[newFrame].Position - offset;
+        leftHandTransform.rotation = Quaternion.Euler(leftHandTransformLogs[newFrame].Rotation);
 
-        rightHandTransform.position = rightHandTransformLogs[e.frame].Position - offset;
-        rightHandTransform.rotation = Quaternion.Euler(rightHandTransformLogs[e.frame].Rotation);
+        if (newFrame >= rightHandTransformLogs.Count){
+            newFrame = rightHandTransformLogs.Count - 1;
+        }
+        if ( newFrame < 0){
+            newFrame = 0;
+        }
+        rightHandTransform.position = rightHandTransformLogs[newFrame].Position - offset;
+        rightHandTransform.rotation = Quaternion.Euler(rightHandTransformLogs[newFrame].Rotation);
 
-        fighterVisuals.ResetVisuals();
+        //fighterVisuals.ResetVisuals();
     }
 
     private void ReplayController_OnReplayDataReady(object sender, EventArgs e)

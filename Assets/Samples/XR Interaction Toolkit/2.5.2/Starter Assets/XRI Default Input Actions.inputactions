@@ -681,12 +681,12 @@
         },
         {
             "name": "XRI LeftHand Interaction",
-            "id": "7a5e7537-cc30-4eb1-a544-6946baa8f3eb",
+            "id": "eae3d444-d2f8-4200-b872-875f81389085",
             "actions": [
                 {
                     "name": "Select",
                     "type": "Button",
-                    "id": "33754c03-48ec-46ef-9bc6-22ed6bfdd8e8",
+                    "id": "f5d47677-3cc3-4459-9a74-c96d1b74c229",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -695,7 +695,7 @@
                 {
                     "name": "Select Value",
                     "type": "Value",
-                    "id": "e6005f29-e4c1-4f3b-8bf7-3a28bab5ca9c",
+                    "id": "93fc22c1-1d06-46ca-9062-d8e9d7dc8a42",
                     "expectedControlType": "Axis",
                     "processors": "",
                     "interactions": "",
@@ -704,7 +704,7 @@
                 {
                     "name": "Activate",
                     "type": "Button",
-                    "id": "0c0991c5-d329-4afc-8892-1076b440477c",
+                    "id": "4ca91350-84d7-4384-8d5e-8c09f956cc97",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -713,7 +713,7 @@
                 {
                     "name": "Activate Value",
                     "type": "Value",
-                    "id": "0c3d0ec9-85a1-45b3-839b-1ca43f859ecd",
+                    "id": "e94f8cd1-0df6-45d6-9665-2d1880c2e688",
                     "expectedControlType": "Axis",
                     "processors": "",
                     "interactions": "",
@@ -722,7 +722,7 @@
                 {
                     "name": "UI Press",
                     "type": "Button",
-                    "id": "7e1eced7-c774-4fe5-be8f-d8711f646d9e",
+                    "id": "01e53671-eb37-4ba4-856c-680946b0b28d",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -731,7 +731,7 @@
                 {
                     "name": "UI Press Value",
                     "type": "Value",
-                    "id": "f241c1aa-1050-4338-b2bf-a4a47776693d",
+                    "id": "64a96b3d-84c4-44c7-b9d7-b10a54128bba",
                     "expectedControlType": "Axis",
                     "processors": "",
                     "interactions": "",
@@ -740,7 +740,7 @@
                 {
                     "name": "UI Scroll",
                     "type": "Value",
-                    "id": "a5372626-7022-4ba7-b152-6f26318fd8a8",
+                    "id": "d48544d0-264b-4463-a1f5-0f5b4465ae48",
                     "expectedControlType": "Vector2",
                     "processors": "InvertVector2(invertY=false)",
                     "interactions": "",
@@ -749,7 +749,7 @@
                 {
                     "name": "Rotate Anchor",
                     "type": "Value",
-                    "id": "21b75b25-12ad-410f-b4f8-a7745b7aca27",
+                    "id": "9a57a4da-975f-4b31-b7cf-8931ff9fc339",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
@@ -758,7 +758,7 @@
                 {
                     "name": "Translate Anchor",
                     "type": "Value",
-                    "id": "bfa204c7-3c92-4193-bad1-39eb71920042",
+                    "id": "ad67cd5c-ce4c-403b-830e-dcb5551f9656",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
@@ -767,7 +767,7 @@
                 {
                     "name": "Scale Toggle",
                     "type": "Button",
-                    "id": "80ed7d74-56de-473c-bf76-da3bdd16b562",
+                    "id": "927d6298-c606-4961-aaab-e86782387a1f",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -776,17 +776,26 @@
                 {
                     "name": "Scale Delta",
                     "type": "Value",
-                    "id": "2257500c-1efb-4f69-a54d-ed5db2708616",
+                    "id": "9b5e3c4c-d797-4568-89b2-9d6a826826a6",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Button One",
+                    "type": "Button",
+                    "id": "386869f1-2f55-4802-8e2a-05207db8f27a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
                 {
                     "name": "",
-                    "id": "71a4d23f-3e9a-4513-923b-ba388c5e84bf",
+                    "id": "400a8754-7eac-449c-b643-276a9183d5f2",
                     "path": "<XRController>{LeftHand}/{GripButton}",
                     "interactions": "",
                     "processors": "",
@@ -797,7 +806,7 @@
                 },
                 {
                     "name": "",
-                    "id": "73325635-d9e5-481a-9279-ae7be089422d",
+                    "id": "182c834f-9f4a-40d8-b892-14d8a9321350",
                     "path": "<MetaAimHand>{LeftHand}/indexPressed",
                     "interactions": "",
                     "processors": "",
@@ -808,7 +817,7 @@
                 },
                 {
                     "name": "",
-                    "id": "49a23327-a116-48c0-8af9-0d2c50c15a88",
+                    "id": "6902e990-5326-4799-8014-ed8ed2025a73",
                     "path": "<XRController>{LeftHand}/{Grip}",
                     "interactions": "",
                     "processors": "",
@@ -819,7 +828,7 @@
                 },
                 {
                     "name": "",
-                    "id": "304be843-4b23-45d9-89fa-005ac163d9b9",
+                    "id": "5fec1e5e-3fd9-4646-a777-c8efdeb1e437",
                     "path": "<MetaAimHand>{LeftHand}/pinchStrengthIndex",
                     "interactions": "",
                     "processors": "",
@@ -830,7 +839,7 @@
                 },
                 {
                     "name": "",
-                    "id": "487f4f2e-9e9b-49aa-b0f2-4037a24624f5",
+                    "id": "70273875-2bb1-427b-80ee-f9241430c305",
                     "path": "<XRController>{LeftHand}/{TriggerButton}",
                     "interactions": "",
                     "processors": "",
@@ -841,7 +850,7 @@
                 },
                 {
                     "name": "",
-                    "id": "3b8b1b59-2fdc-4998-8259-50341075d9a2",
+                    "id": "fd1805bd-1761-48a6-9f64-846e303e8d20",
                     "path": "<XRController>{LeftHand}/{Trigger}",
                     "interactions": "",
                     "processors": "",
@@ -852,7 +861,7 @@
                 },
                 {
                     "name": "",
-                    "id": "b34c79c1-ab5e-4851-87ac-abc43705eae0",
+                    "id": "3f056b87-732f-4043-aa86-ac36e8640969",
                     "path": "<XRController>{LeftHand}/{TriggerButton}",
                     "interactions": "",
                     "processors": "",
@@ -863,7 +872,7 @@
                 },
                 {
                     "name": "",
-                    "id": "a5bf6a12-a026-46d1-a793-7252c49aaf66",
+                    "id": "f88e8039-9614-42a3-b6b4-11f46ec25cac",
                     "path": "<MetaAimHand>{LeftHand}/indexPressed",
                     "interactions": "",
                     "processors": "",
@@ -874,7 +883,7 @@
                 },
                 {
                     "name": "",
-                    "id": "71d94579-1bf4-4034-ab9e-e7166842128f",
+                    "id": "86921d2e-c590-448a-bb79-b07391929771",
                     "path": "<XRController>{LeftHand}/{Trigger}",
                     "interactions": "",
                     "processors": "",
@@ -885,7 +894,7 @@
                 },
                 {
                     "name": "",
-                    "id": "d250c9be-4bf2-4b5c-8962-4fcf5d53bdb3",
+                    "id": "22e3c7f8-2bdb-4103-9c67-fb7d88df1707",
                     "path": "<MetaAimHand>{LeftHand}/pinchStrengthIndex",
                     "interactions": "",
                     "processors": "",
@@ -896,7 +905,7 @@
                 },
                 {
                     "name": "",
-                    "id": "8ed313a6-c966-4669-8a62-4bb2319d485b",
+                    "id": "5eaedea2-0d28-4e1e-bed8-43d66c7da07d",
                     "path": "<XRController>{LeftHand}/{Primary2DAxis}",
                     "interactions": "",
                     "processors": "ScaleVector2(y=0),StickDeadzone",
@@ -907,7 +916,7 @@
                 },
                 {
                     "name": "",
-                    "id": "370f21e3-a80b-4b07-990b-299c2da0929a",
+                    "id": "355be323-1721-4a04-9e99-31172a39b2ba",
                     "path": "<XRController>{LeftHand}/{Primary2DAxis}",
                     "interactions": "",
                     "processors": "ScaleVector2(x=0),StickDeadzone",
@@ -918,7 +927,7 @@
                 },
                 {
                     "name": "",
-                    "id": "7b30ca4b-9f98-4a44-9af5-a89412d5cdc8",
+                    "id": "04542f24-a0d3-4616-a65c-d51801546aca",
                     "path": "<XRController>{LeftHand}/{Primary2DAxis}",
                     "interactions": "",
                     "processors": "",
@@ -929,7 +938,7 @@
                 },
                 {
                     "name": "",
-                    "id": "8f872fc5-75dc-49e5-9bbd-f2e4d4498c65",
+                    "id": "cccc8fb3-1c43-45e3-a726-192a28f13688",
                     "path": "<XRController>{LeftHand}/{Primary2DAxisClick}",
                     "interactions": "",
                     "processors": "",
@@ -940,12 +949,23 @@
                 },
                 {
                     "name": "",
-                    "id": "b21d690b-51fc-413f-a887-08a2a39af3fc",
+                    "id": "86908df7-6c27-4b78-b593-c8e0dd310964",
                     "path": "<XRController>{LeftHand}/{Primary2DAxis}",
                     "interactions": "",
                     "processors": "ScaleVector2(x=0),StickDeadzone",
                     "groups": "Generic XR Controller",
                     "action": "Scale Delta",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "30035572-97c1-46e7-8aef-86790bd540f6",
+                    "path": "<XRController>{LeftHand}/{PrimaryButton}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Button One",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -1577,6 +1597,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Button One",
+                    "type": "Button",
+                    "id": "9fe54fac-ad3f-47b4-a8e1-f73c68ae172d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1742,6 +1771,17 @@
                     "processors": "ScaleVector2(x=0),StickDeadzone",
                     "groups": "Generic XR Controller",
                     "action": "Scale Delta",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "34923785-d5a3-4d12-8b82-37e2decfde9c",
+                    "path": "<XRController>{RightHand}/{PrimaryButton}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Button One",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

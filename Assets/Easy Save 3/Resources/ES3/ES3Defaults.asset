@@ -30,7 +30,18 @@ MonoBehaviour:
     serializationDepthLimit: 64
     assemblyNames:
     - Assembly-CSharp
+    - Meta.XR.BuildingBlocks
+    - Oculus.VR
+    - Oculus.VR.Editor
+    - Oculus.VR.Scripts.Editor
+    - unity-websocket-sharp
+    - Meta.XR.GuidedSetups.Editor
+    - Meta.XR.Editor.StatusMenu
+    - Meta.XR.BuildingBlocks.Editor
+    - Meta.XR.Editor.Tags
+    - Meta.XR.Editor.Callbacks
     - ParrelSync
+    - Meta.XR.Editor.UserInterface
     showAdvancedSettings: 1
   addMgrToSceneAutomatically: 0
   autoUpdateReferences: 1

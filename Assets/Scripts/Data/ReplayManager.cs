@@ -6,13 +6,7 @@ using UnityEngine;
 /*
  * gives references to data of loaded file
  */
-public enum Savefile
-{
-    Tutorial,
-    TaskOne,
-    TaskTwo,
-    TaskThree,
-}
+
 
 public class ReplayManager : MonoBehaviour
 {
@@ -21,7 +15,7 @@ public class ReplayManager : MonoBehaviour
     public event EventHandler<OnReplayLoadedEventArgs> OnReplayLoaded;
     public class OnReplayLoadedEventArgs
     {
-        public ReplaySO replaySO;
+        public RecordingSO replaySO;
     }
 
     public event EventHandler OnReplayUnloaded;
@@ -56,7 +50,7 @@ public class ReplayManager : MonoBehaviour
     private bool isLoading = false;
     private bool fileLoaded = false;
 
-    private ReplaySO activeReplaySO;
+    private RecordingSO activeReplaySO;
 
     private void Awake()
     {
@@ -98,7 +92,7 @@ public class ReplayManager : MonoBehaviour
         }
     }
 
-    public void Load(ReplaySO replaySO)
+    public void Load(RecordingSO replaySO)
     {
         StartLoad(replaySO.savefile);
 
@@ -167,8 +161,8 @@ public class ReplayManager : MonoBehaviour
         OnReplayUnloaded?.Invoke(this, EventArgs.Empty);
     }
 
-    /* In HR-Manager überführen
-    // Gib den HRLog zurück, der dem gegebenen Frame am nächsten kommt
+    /* In HR-Manager ï¿½berfï¿½hren
+    // Gib den HRLog zurï¿½ck, der dem gegebenen Frame am nï¿½chsten kommt
     public int GetCurrentHeartRate()
     {
         if (!fileLoaded || isLoading)
@@ -178,10 +172,10 @@ public class ReplayManager : MonoBehaviour
         int nearestFrame = -1;
         foreach (int key in hrLogDic.Keys)
         {
-            // Wenn der Schlüssel kleiner oder gleich dem gegebenen Frame ist
+            // Wenn der Schlï¿½ssel kleiner oder gleich dem gegebenen Frame ist
             if (key <= frame)
             {
-                // Aktualisiere den Wert von nearestFrame, wenn der Schlüssel größer ist
+                // Aktualisiere den Wert von nearestFrame, wenn der Schlï¿½ssel grï¿½ï¿½er ist
                 if (key > nearestFrame)
                 {
                     nearestFrame = key;
@@ -189,13 +183,13 @@ public class ReplayManager : MonoBehaviour
             }
         }
 
-        // Wenn nearestFrame aktualisiert wurde, gib den entsprechenden HRLog zurück
+        // Wenn nearestFrame aktualisiert wurde, gib den entsprechenden HRLog zurï¿½ck
         if (nearestFrame != -1)
         {
             return hrLogDic[nearestFrame].heartRate;
         }
 
-        // Wenn kein passender HRLog gefunden wurde, gib null zurück
+        // Wenn kein passender HRLog gefunden wurde, gib null zurï¿½ck
         return 0;
     }
     */
@@ -234,5 +228,5 @@ public class ReplayManager : MonoBehaviour
     public List<TransformLog> GetLeftHandTransformLogs() { return leftHandTransformLogs; }
     public List<TransformLog> GetRightHandTransformLogs() { return rightHandTransformLogs; }
 
-    public ReplaySO GetActiveReplaySO() { return activeReplaySO; }
+    public RecordingSO GetActiveReplaySO() { return activeReplaySO; }
 }

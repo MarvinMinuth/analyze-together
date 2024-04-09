@@ -2,8 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public abstract class Timeline : MonoBehaviour
+public abstract class Timeline : NetworkBehaviour
 {
     public static event EventHandler<OnTimelineUsedEventArgs> OnTimelineUsed;
     public class OnTimelineUsedEventArgs
@@ -11,6 +12,8 @@ public abstract class Timeline : MonoBehaviour
         public Timeline usedTimeline;
     }
     public static event EventHandler OnTimelineFreed;
+
+
 
     protected virtual void Start()
     {

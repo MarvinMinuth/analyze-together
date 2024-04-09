@@ -6,13 +6,13 @@ public class HitSoundManager : MonoBehaviour
     [SerializeField] private AudioSource punchAudioSource, swordAudioSource;
     
 
-    private ReplayManager replayManager;
+    private RecordingManager replayManager;
     private ReplayController replayController;
     private Dictionary<int, FightCollisionLog[]> fightCollisionDic;
 
     private void Start()
     {
-        replayManager = ReplayManager.Instance;
+        replayManager = RecordingManager.Instance;
         replayController = ReplayController.Instance;
 
         replayController.OnReplayDataReady += ReplayController_OnReplayDataReady;
@@ -27,7 +27,7 @@ public class HitSoundManager : MonoBehaviour
 
     private void ReplayController_OnFrameChanged(object sender, ReplayController.OnFrameChangedEventArgs e)
     {
-        if(!replayController.IsRunning()) { return; }
+        if(!replayController.IsPlaying()) { return; }
         if (fightCollisionDic.ContainsKey(e.frame))
         {
             foreach (FightCollisionLog fightCollisionLog in fightCollisionDic[e.frame])

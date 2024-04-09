@@ -1,42 +1,49 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /*
  * Gets logData from ReplayManager
  * Listens to ReplayController and sets arms for active frame
  */
-public class ArmsCoordinator : MonoBehaviour
+public class ArmsCoordinator : NetworkBehaviour
 {
-    public string prefabFolder = "FightingDummy/Prefabs";
+    [Header("Bottom Arm")]
+    [SerializeField] private GameObject bottomArmBase;
+    [SerializeField] private GameObject bottomArmSphere;
+    [SerializeField] private List<Transform> bottomArmAttachements;
 
-    public GameObject bottomArmBase;
-    public GameObject middleArmBase;
-    public GameObject topArmBase;
+    [Header("Mid Arm")]
+    [SerializeField] private GameObject middleArmBase;
+    [SerializeField] private GameObject middleArmSphere;
+    [SerializeField] private List<Transform> middleArmAttachements;
+
+    [Header("Top Arm")]
+    [SerializeField] private GameObject topArmBase;
+    [SerializeField] private GameObject topArmSphere;
+    [SerializeField] private List<Transform> topArmAttachements;
+
     private List<GameObject> armBases;
 
     private Dictionary<GameObject, GameObject> activeArms = new Dictionary<GameObject, GameObject>();
 
     private ReplayController replayController;
-    private ReplayManager replayManager;
+    private RecordingManager recordingManager;
 
     private List<ArmLog> bottomArmLogs;
     private List<ArmLog> middleArmLogs;
     private List<ArmLog> topArmLogs;
 
+    [Header("Offset")]
     [SerializeField] private Transform offsetTransform;
     [SerializeField] private Transform fightingSceneTransform;
     private Vector3 offset;
 
     void Start()
     {
+
+
         offset = offsetTransform.localPosition - fightingSceneTransform.position;
-
-        replayController = ReplayController.Instance;
-        replayManager = ReplayManager.Instance;
-
-        replayController.OnReplayDataReady += ReplayController_OnReplayDataReady;
-        replayController.OnFrameChanged += ReplayController_OnFrameChanged;
-        replayController.OnReplayControllerUnload += ReplayController_OnReplayControllerUnload;
 
         armBases = new List<GameObject>
         {
@@ -44,13 +51,25 @@ public class ArmsCoordinator : MonoBehaviour
             middleArmBase,
             topArmBase
         };
+
+        if (IsServer)
+        {
+            replayController = ReplayController.Instance;
+            recordingManager = RecordingManager.Instance;
+
+            replayController.OnReplayDataReady += ReplayController_OnReplayDataReady;
+            replayController.OnFrameChanged += ReplayController_OnFrameChanged;
+            replayController.OnReplayControllerUnload += ReplayController_OnReplayControllerUnload;
+
+            ResetArms();
+        }
     }
 
     private void ReplayController_OnReplayDataReady(object sender, System.EventArgs e)
     {
-        bottomArmLogs = replayManager.GetBottomArmLogs();
-        middleArmLogs = replayManager.GetMiddleArmLogs();
-        topArmLogs = replayManager.GetTopArmLogs();
+        bottomArmLogs = recordingManager.GetBottomArmLogs();     
+        middleArmLogs = recordingManager.GetMiddleArmLogs();
+        topArmLogs = recordingManager.GetTopArmLogs();
     }
 
     private void ReplayController_OnReplayControllerUnload(object sender, System.EventArgs e)
@@ -74,6 +93,14 @@ public class ArmsCoordinator : MonoBehaviour
     }
     private void SetBottomArmBase(int frame)
     {
+        if(frame > bottomArmLogs.Count - 1)
+        {
+            frame = bottomArmLogs.Count - 1;
+        }
+        if(frame < 0)
+        {
+            frame = 0;
+        }
         ArmLog activeLog = bottomArmLogs[frame];
         AttachToArmBase(bottomArmBase, activeLog.armType);
         SetPosition(bottomArmBase, activeLog.Position - offset);
@@ -84,6 +111,14 @@ public class ArmsCoordinator : MonoBehaviour
 
     private void SetMiddleArmBase(int frame)
     {
+        if(frame > middleArmLogs.Count - 1)
+        {
+            frame = middleArmLogs.Count - 1;
+        }
+        if(frame < 0)
+        {
+            frame = 0;
+        }
         ArmLog activeLog = middleArmLogs[frame];
         AttachToArmBase(middleArmBase, activeLog.armType);
         SetPosition(middleArmBase, activeLog.Position - offset);
@@ -94,6 +129,14 @@ public class ArmsCoordinator : MonoBehaviour
 
     private void SetTopArmBase(int frame)
     {
+        if(frame > topArmLogs.Count - 1)
+        {
+            frame = topArmLogs.Count - 1;
+        }
+        if(frame < 0)
+        {
+            frame = 0;
+        }
         ArmLog activeLog = topArmLogs[frame];
         AttachToArmBase(topArmBase, activeLog.armType);
         SetPosition(topArmBase, activeLog.Position - offset);
@@ -165,7 +208,7 @@ public class ArmsCoordinator : MonoBehaviour
             return;   
         }
         DetachFromArmBase(armBase);
-        spawnArm.SetActive(true);
+        spawnArm.GetComponent<DummyArmVisuals>().Show();
         activeArms.Add(armBase, spawnArm);
     }
 
@@ -175,7 +218,8 @@ public class ArmsCoordinator : MonoBehaviour
         {
             return;
         }
-        activeArms[armBase].SetActive(false);
+        activeArms[armBase].GetComponent<DummyArmVisuals>().Hide();
+        middleArmSphere.GetComponent<DummyArmVisuals>().Show();
         activeArms.Remove(armBase);
     }
     public void DetachFromBottom()
@@ -203,10 +247,32 @@ public class ArmsCoordinator : MonoBehaviour
     public void ResetArms()
     {
         DetachAll();
+
         foreach(GameObject armBase in armBases)
         {
-            SetPosition(armBase, new Vector3(0, 0, 0));
-            SetRotation(armBase, new Quaternion(0, 0, 0, 0));
+            //armBase.transform.localPosition = Vector3.zero;
+            armBase.transform.localRotation = Quaternion.identity;
         }
+
+
+        foreach (Transform armAttachement in bottomArmAttachements)
+        {
+            armAttachement.GetComponent<DummyArmVisuals>().Hide();
+        }
+        
+
+        foreach (Transform armAttachement in middleArmAttachements)
+        {
+            armAttachement.GetComponent<DummyArmVisuals>().Hide();
+        }
+
+        foreach (Transform armAttachement in topArmAttachements)
+        {
+            armAttachement.GetComponent<DummyArmVisuals>().Hide();
+        }
+
+        bottomArmSphere.GetComponent<DummyArmVisuals>().Show();
+        middleArmSphere.GetComponent<DummyArmVisuals>().Show();
+        topArmSphere.GetComponent<DummyArmVisuals>().Show();
     }
 }

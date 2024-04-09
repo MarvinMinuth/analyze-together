@@ -115,7 +115,7 @@ public class HRLog
 public class LogDataManager : MonoBehaviour
 {
     public FileManager fileManager;
-    [SerializeField] private ReplaySO replaySO;
+    [SerializeField] private RecordingSO replaySO;
     private string attachedToBottom, attachedToTop, attachedToMiddle;
     private string saveFile;
 

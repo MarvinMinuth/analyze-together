@@ -4,10 +4,10 @@ using UnityEngine.UI;
 public class LoadButton : MonoBehaviour
 {
     private ReplayController replayController;
-    [SerializeField] private ReplaySO replaySO;
+    [SerializeField] private RecordingSO replaySO;
     [SerializeField] private Button loadButton;
 
-    private void Start()
+    public void Setup()
     {
         replayController = ReplayController.Instance;
         loadButton.onClick.AddListener(LoadReplay);

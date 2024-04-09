@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e053a9f93d6025745bbe040cdf1444ed, type: 3}
+  m_Script: {fileID: 11500000, guid: 11d2c4b4c2c9c2e4989bc7890324f07f, type: 3}
   m_Name: TutorialReplaySO
   m_EditorClassIdentifier: 
   fileName: TutorialLog.json
-  savefile: 0
+  savefile: 1

@@ -2,12 +2,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class MenuTimeline : Timeline
 {
+    public event EventHandler OnTimelineSetup;
+    public event EventHandler OnTimelineReset;
+
     // Slider
     [Header("Slider")]
     [SerializeField] private float threshold = 60f;
@@ -17,7 +21,8 @@ public class MenuTimeline : Timeline
     [SerializeField] private Image handleImage;
 
     //Replay
-    private ReplayController replayController;
+    private ReplayControlRpcs controlRpcs;
+    private NetworkVariableSync variableSync;
 
     // Markers
     /*
@@ -33,33 +38,75 @@ public class MenuTimeline : Timeline
     [SerializeField] private int windowSize = 180;
     */
 
-    private int minFrame, maxFrame;
-    private bool isDragged = false;
+    private float minFrame, maxFrame;
     private bool wasRunning;
 
     private int activeFrame;
     protected override void Start()
     {
         base.Start();
-        replayController = ReplayController.Instance;
-
-        replayController.OnReplayControllerLoaded += ReplayController_OnReplayControllerLoaded;
-        replayController.OnReplayControllerUnload += ReplayController_OnReplayControllerUnload;
-        replayController.OnStop += ReplayController_OnStop;
-
         timelineSlider.maxValue = 1;
     }
 
-
-    private void ReplayController_OnStop(object sender, EventArgs e)
+    public override void OnNetworkSpawn()
     {
+        variableSync = NetworkVariableSync.Instance;
+        controlRpcs = ReplayControlRpcs.Instance;
+
+        if(variableSync.savefile.Value != Savefile.None)
+        {
+            timelineSlider.maxValue = variableSync.replayLength.Value - 1;
+            timelineSlider.value = variableSync.activeFrame.Value;
+
+            minFrame = variableSync.minFrame.Value;
+            maxFrame = variableSync.maxFrame.Value;
+        }
+
+        variableSync.replayLength.OnValueChanged += OnReplayLengthChanged;
+        variableSync.activeFrame.OnValueChanged += OnActiveFrameChanged;
+        variableSync.minFrame.OnValueChanged += OnMinFrameChanged;
+        variableSync.maxFrame.OnValueChanged += OnMaxFrameChanged;
     }
 
+    private void OnReplayLengthChanged(int previous, int current)
+    {
+        
+        timelineSlider.value = 0;
+
+        if(current == 0)  // No Replay, Timeline Resets
+        { 
+            current = 1; 
+            OnTimelineReset?.Invoke(this, EventArgs.Empty);
+        }
+
+        timelineSlider.maxValue = current;
+
+        OnTimelineSetup?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnActiveFrameChanged(int previous, int current)
+    {
+        if (variableSync.isInteractionInProgress.Value && variableSync.interactorId.Value == NetworkManager.Singleton.LocalClientId) { return; }
+        activeFrame = current;
+        timelineSlider.value = activeFrame;
+    }
+
+    private void OnMinFrameChanged(int previous, int current)
+    {
+        minFrame = current;
+    }
+
+    private void OnMaxFrameChanged(int previous, int current)
+    {
+        maxFrame = current;
+    }
+
+    
     protected override void ReplayController_OnReplayControllerUnload(object sender, EventArgs e)
     {
-        ResetTimeline();
+        //ResetTimeline();
     }
-
+    /*
     private void ReplayController_OnReplayControllerLoaded(object sender, EventArgs e)
     {
         SetupTimeline();
@@ -79,42 +126,48 @@ public class MenuTimeline : Timeline
         timelineSlider.value = 0;
         timelineSlider.maxValue = 0;
     }
+    */
 
     public override void StartDrag()
     {
-        Debug.Log("Start Drag");
-        TriggerOnTimelineUsed(this);
+        variableSync.RequestAccessServerRpc();
+        if(!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
 
-        wasRunning = replayController.IsRunning();
-        replayController.Pause();
-        isDragged = true;
-        replayController.SetReceivingInput(true);
-    }
-
-    public void HandleSliderInteraction(BaseEventData eventData)
-    {
-        if (!isDragged)
         {
-            StartDrag();
+            Debug.Log("Start Drag");
+            TriggerOnTimelineUsed(this);
+
+            wasRunning = variableSync.isPlaying.Value;
+            controlRpcs.PauseServerRpc();
+            //replayController.SetReceivingInput(true);
         }
+
     }
 
     public override void EndDrag()
     {
+        if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
         Debug.Log("End Drag");
-        isDragged = false;
         if (wasRunning)
         {
-            replayController.Play();
+            controlRpcs.PlayServerRpc();
         }
-        replayController.SetReceivingInput(false);
+        //replayController.SetReceivingInput(false);
         TriggerOnTimelineFreed();
+        variableSync.FreeAccessServerRpc();
+    }
+
+    public void ChangeValue()
+    {
+        if(variableSync.isInteractionInProgress.Value) { return; }
+        controlRpcs.SetFrameServerRpc((int)timelineSlider.value);
     }
 
     public void OnTimelineValueChanged()
     {
+        if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
+
         float value = timelineSlider.value;
-        if (!isDragged) { return; }
         if (value < minFrame) { value = minFrame; }
         if (value > maxFrame) { value = maxFrame; }
 
@@ -126,7 +179,7 @@ public class MenuTimeline : Timeline
         {
             // Setze den Replay-Zeitpunkt auf den Wert des Timelines
             activeFrame = (int)value;
-            replayController.SetFrame(activeFrame);
+            controlRpcs.SetFrameServerRpc(activeFrame);
         }
 
         /*
@@ -157,13 +210,14 @@ public class MenuTimeline : Timeline
         */
     }
 
-
+    /*
     void Update()
     {
         if (!replayController.IsReplayReady()) { timelineSlider.value = 0; }
         else if(isDragged) { return; }
         else { timelineSlider.value = replayController.GetFrame(); }
     }
+    */
 
     public float GetMaxValue()
     {
@@ -174,6 +228,17 @@ public class MenuTimeline : Timeline
     {
         return timelineSlider.minValue;
     }
+
+    public void SetMinFrame(float frame)
+    {
+        minFrame = frame;
+    }
+
+    public void SetMaxFrame(float frame)
+    {
+        maxFrame = frame;
+    }
+
 
     protected override void Timeline_OnTimelineUsed(object sender, OnTimelineUsedEventArgs e)
     {

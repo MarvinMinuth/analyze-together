@@ -7,7 +7,7 @@ public class FighterVisuals : MonoBehaviour
     [SerializeField] private MeshRenderer bodyMeshRenderer;
     [SerializeField] private MeshRenderer[] leftHandMeshRenderers;
     [SerializeField] private MeshRenderer[] rightHandMeshRenderers;
-    [SerializeField] private Transform headTransform, leftHandTransform, rightHandTransform;
+    [SerializeField] private FighterBodyPartVisuals headVisuals, leftHandVisuals, rightHandVisuals;
 
     private FighterCoordinator fighterCoordinator;
 
@@ -15,19 +15,22 @@ public class FighterVisuals : MonoBehaviour
     {
         fighterCoordinator = FighterCoordinator.Instance;
         if (fighterCoordinator == null) Debug.LogError("No FighterCoordinator found");
+
+        //Hide();
     }
+
     public void Show()
     {
-        headTransform.gameObject.SetActive(true);
-        leftHandTransform.gameObject.SetActive(true);
-        rightHandTransform.gameObject.SetActive(true);
+        headVisuals.Show();
+        leftHandVisuals.Show();
+        rightHandVisuals.Show();
     }
 
     public void Hide()
     {
-        headTransform.gameObject.SetActive(false);
-        leftHandTransform.gameObject.SetActive(false);
-        rightHandTransform.gameObject.SetActive(false);
+        headVisuals.Hide();
+        leftHandVisuals.Hide();
+        rightHandVisuals.Hide();
     }
 
     public void ChangeMaterial(Material material, bool changeHMDMaterial)
@@ -71,33 +74,35 @@ public class FighterVisuals : MonoBehaviour
         bodyMeshRenderer.material = material;
     }
 
+    /*
     public void SetHeadByTransformLog(TransformLog transformLog)
     {
-        headTransform.position = transformLog.Position;
-        headTransform.rotation = Quaternion.Euler(transformLog.Rotation);
+        headVisuals.position = transformLog.Position;
+        headVisuals.rotation = Quaternion.Euler(transformLog.Rotation);
     }
 
     public void SetLeftHandByTransformLog(TransformLog transformLog)
     {
-        leftHandTransform.position = transformLog.Position;
-        leftHandTransform.rotation = Quaternion.Euler(transformLog.Rotation);
+        leftHandVisuals.position = transformLog.Position;
+        leftHandVisuals.rotation = Quaternion.Euler(transformLog.Rotation);
     }
 
     public void SetRightHandByTransformLog(TransformLog transformLog)
     {
-        rightHandTransform.position = transformLog.Position;
-        rightHandTransform.rotation = Quaternion.Euler(transformLog.Rotation);
+        rightHandVisuals.position = transformLog.Position;
+        rightHandVisuals.rotation = Quaternion.Euler(transformLog.Rotation);
     }
 
     public void ResetVisuals()
     {
-        headTransform.localPosition = Vector3.zero;
-        headTransform.localRotation = Quaternion.identity;
+        headVisuals.localPosition = Vector3.zero;
+        headVisuals.localRotation = Quaternion.identity;
 
-        leftHandTransform.localPosition = Vector3.zero;
-        leftHandTransform.localRotation = Quaternion.identity;
+        leftHandVisuals.localPosition = Vector3.zero;
+        leftHandVisuals.localRotation = Quaternion.identity;
 
-        rightHandTransform.localPosition = Vector3.zero;
-        rightHandTransform.localRotation = Quaternion.identity;
+        rightHandVisuals.localPosition = Vector3.zero;
+        rightHandVisuals.localRotation = Quaternion.identity;
     }
+    */
 }

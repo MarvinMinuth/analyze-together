@@ -189,68 +189,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
---- !u!1 &3242310165817596681
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7587072822954565970}
-  - component: {fileID: 747761575020936486}
-  - component: {fileID: 9032625898344051173}
-  m_Layer: 0
-  m_Name: BroadSword_collision (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &7587072822954565970
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3242310165817596681}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.0000017061827, y: -0.0000018626449, z: 0.7071069, w: -0.7071067}
-  m_LocalPosition: {x: 0.0019073826, y: 0, z: -0.6999997}
-  m_LocalScale: {x: 1.4, y: 1.4, z: 1.4}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5660255154164320985}
-  m_LocalEulerAnglesHint: {x: 0, y: -360, z: -90}
---- !u!33 &747761575020936486
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3242310165817596681}
-  m_Mesh: {fileID: 6949685931756451260, guid: 5b93fd3fae808d642ae66f99ec7d2245, type: 3}
---- !u!65 &9032625898344051173
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3242310165817596681}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.004, y: 0.02881483, z: 0.7032888}
-  m_Center: {x: -0.000006005168, y: -0.000561859, z: -0.17388433}
 --- !u!1001 &3952355859682553406
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -319,6 +257,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Dodge_Arm Variant Variant Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 5908585479764838105, guid: 4d1b46c4ce58d174bbc5cab04d9c1ba4, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 951099334
+      objectReference: {fileID: 0}
     - target: {fileID: 7202536768482780993, guid: 4d1b46c4ce58d174bbc5cab04d9c1ba4, type: 3}
       propertyPath: m_RenderingLayerMask
       value: 2
@@ -337,7 +279,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 934025633299680562, guid: 4d1b46c4ce58d174bbc5cab04d9c1ba4, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 9087693465187002041, guid: 4d1b46c4ce58d174bbc5cab04d9c1ba4, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 8670786784550331623, guid: 4d1b46c4ce58d174bbc5cab04d9c1ba4, type: 3}
       insertIndex: -1
@@ -345,9 +288,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8670786784550331623, guid: 4d1b46c4ce58d174bbc5cab04d9c1ba4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4997417572828828481}
-    - targetCorrespondingSourceObject: {fileID: 8670786784550331623, guid: 4d1b46c4ce58d174bbc5cab04d9c1ba4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7587072822954565970}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4d1b46c4ce58d174bbc5cab04d9c1ba4, type: 3}
 --- !u!4 &5660255154164320985 stripped
