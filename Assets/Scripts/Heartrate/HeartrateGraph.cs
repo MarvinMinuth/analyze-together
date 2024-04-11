@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using ES3Internal;
 using TMPro;
 using UnityEngine;
 
@@ -8,10 +9,17 @@ public class HeartrateGraph : MonoBehaviour
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private TimelineNew timeline;
     [SerializeField] private float lineWidth = 0.005f;
+    [SerializeField] private float baselineWidth = 0.15f;
     [SerializeField] private float overheight = 2f;
+
+    [SerializeField] private int minHR = 40;
+    [SerializeField] private int maxHR = 200;
+    [SerializeField] private GameObject heartrateBaselinePrefab;
+    [SerializeField] private int baselineHeartrate = 80;
     private RecordingManager recordingManager;
     private RectTransform sliderRectTransform;
     private bool logsLoaded = false;
+    private bool baselineSet = false;
 
     void Start()
     {
@@ -47,22 +55,38 @@ public class HeartrateGraph : MonoBehaviour
 
     public void SetupHeartrateGraph(Dictionary<int, HRLog> hrLogDic)
     {
+
         lineRenderer.startWidth = lineWidth;
         int minFrame = (int)timeline.GetMinValue();
         int maxFrame = (int)timeline.GetMaxValue();
 
         float width = sliderRectTransform.rect.width;
 
+        if (!baselineSet)
+        {
+            GameObject baseline = Instantiate(heartrateBaselinePrefab, transform);
+            baseline.GetComponent<HeartrateBaseline>().SetupBaseline(baselineWidth, width, baselineHeartrate, this);
+            baselineSet = true;
+        }
+
         // Anpassen des normalisierten X-Wertes, um von minFrame zu starten
         float normalizedXValue = width / (maxFrame - minFrame);
 
         lineRenderer.positionCount = hrLogDic.Count;
-        int point = 0;
 
+        List<Vector3> positions = new List<Vector3>();
+
+        int count = 0;
         foreach (KeyValuePair<int, HRLog> log in hrLogDic)
         {
+            count++;
             if (log.Value.heartRate < 20 || log.Key < minFrame || log.Key > maxFrame)
             {
+                if (log.Key > maxFrame && positions[positions.Count - 1].x != width / 2)
+                {
+                    Vector3 endPosition = new Vector3(width / 2, positions[positions.Count - 1].y, 0);
+                    positions.Add(endPosition);
+                }
                 continue; // Überspringe niedrige Herzfrequenzen
             }
 
@@ -70,26 +94,43 @@ public class HeartrateGraph : MonoBehaviour
             float positionY = GetNormalizedHeartRatePosition(log.Value.heartRate);
 
             Vector3 position = new Vector3(positionX, positionY, 0);
-            lineRenderer.SetPosition(point, position);
-            point++;
+
+            if (positionX != -(width / 2) && positions.Count == 0)
+            {
+                positionX = -(width / 2);
+                Vector3 startPosition = new Vector3(positionX, positionY, 0);
+                positions.Add(startPosition);
+            }
+
+            positions.Add(position);
+
+            if (count == hrLogDic.Count)
+            {
+                Vector3 endPosition = new Vector3(width / 2, positionY, 0);
+                positions.Add(endPosition);
+            }
+        }
+
+        lineRenderer.positionCount = positions.Count;
+        for (int i = 0; i < positions.Count; i++)
+        {
+            lineRenderer.SetPosition(i, positions[i]);
         }
 
         // Optional: Farben und Vereinfachung einstellen
         lineRenderer.Simplify(0.01f);
     }
 
-    private float GetNormalizedHeartRatePosition(int heartRate)
+    public float GetNormalizedHeartRatePosition(int heartRate)
     {
-        int minHR = 40, maxHR = 200;
-
         // minY und maxY basieren auf der tatsächlichen Höhe der Timeline
         float height = sliderRectTransform.rect.height;
         float baseMinY = -height / 2;  // Grundlegende minY-Position ohne overheight-Anpassung
+
         float baseMaxY = height / 2;   // Grundlegende maxY-Position ohne overheight-Anpassung
 
         // Normalisiere die Herzfrequenz im gewünschten Y-Bereich
         float normalizedHR = (float)(heartRate - minHR) / (maxHR - minHR);
-
         // Berechne die Position basierend auf dem normalisierten Herzfrequenzwert und der Höhe
         float positionY = normalizedHR * (baseMaxY - baseMinY) + baseMinY;
 

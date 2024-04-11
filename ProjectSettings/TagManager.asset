@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Fighter
   layers:
   - Default
   - TransparentFX
@@ -40,4 +41,16 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: UI Background
+    uniqueID: 23738455
+    locked: 0
+  - name: UI Background Elements
+    uniqueID: 1558342939
+    locked: 0
+  - name: UI Elements
+    uniqueID: 1867224253
+    locked: 0
+  - name: Raycast
+    uniqueID: 4294691637
     locked: 0

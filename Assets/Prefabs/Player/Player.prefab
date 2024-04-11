@@ -48,6 +48,8 @@ MonoBehaviour:
   rightRayInteractor: {fileID: 7430408415456290228}
   leftActionReference: {fileID: -6165165325416616633, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   rightActionReference: {fileID: -5782263592335341043, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  leftBlockingActions: []
+  rightBlockingActions: []
 --- !u!1 &6771648756822288649
 GameObject:
   m_ObjectHideFlags: 0
