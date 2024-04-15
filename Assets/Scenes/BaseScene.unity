@@ -2439,6 +2439,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 538302418}
   m_CullTransparentMesh: 1
+--- !u!4 &660716371 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+  m_PrefabInstance: {fileID: 890122294}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -2757,6 +2762,157 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &890122294
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1709032193}
+    m_Modifications:
+    - target: {fileID: 1958521013, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: audioFeedbackButton
+      value: 
+      objectReference: {fileID: 890122297}
+    - target: {fileID: 1958521013, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: hapticFeedbackButton
+      value: 
+      objectReference: {fileID: 890122295}
+    - target: {fileID: 1958521013, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: visualFeedbackButton
+      value: 
+      objectReference: {fileID: 890122296}
+    - target: {fileID: 533310936363208308, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_Name
+      value: Menu
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -4.1949883
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.0541406
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2.0757864
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.8658508
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.5003023
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -60.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310936363208309, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310937250189190, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.88
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310937250189190, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -0.23
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310937886190660, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: audioFeedbackButton
+      value: 
+      objectReference: {fileID: 890122297}
+    - target: {fileID: 533310937886190660, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: hapticFeedbackButton
+      value: 
+      objectReference: {fileID: 890122295}
+    - target: {fileID: 533310937886190660, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: visualFeedbackButton
+      value: 
+      objectReference: {fileID: 890122296}
+    - target: {fileID: 533310938096682671, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310938096682671, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310938096682671, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1607043464}
+    - target: {fileID: 533310938096682671, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310938096682671, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnHapticFeedbackButtonPressed
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310938096682671, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: HeartControlButtons, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 533310938096682671, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 1958521013, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+--- !u!114 &890122295 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 533310938096682671, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+  m_PrefabInstance: {fileID: 890122294}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &890122296 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 533310937113349428, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+  m_PrefabInstance: {fileID: 890122294}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &890122297 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 533310936404276051, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+  m_PrefabInstance: {fileID: 890122294}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &911947175
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4013,6 +4169,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3876151181567332918, guid: 1bed4c41bce043d45b87aa4a6a56fc41, type: 3}
   m_PrefabInstance: {fileID: 911947175}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1607043464 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 533310937886190660, guid: 3f17c81615546d94da23a97211f8fd12, type: 3}
+  m_PrefabInstance: {fileID: 890122294}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbe6cf6057e72e141bc67a0e1910dafd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1709032191
 GameObject:
   m_ObjectHideFlags: 0
@@ -4045,7 +4212,7 @@ MonoBehaviour:
   heartrateDisplay: {fileID: 1056408294}
   useVisualFeedback: 0
   useAudioFeedback: 0
-  useHapticFeedback: 1
+  useHapticFeedback: 0
   shortPause: 1
   longPause: 4
   lubPhase: 1
@@ -4073,7 +4240,8 @@ Transform:
   m_LocalPosition: {x: 0.5049882, y: 2.8901405, z: 2.4857864}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 660716371}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1857832703 stripped
