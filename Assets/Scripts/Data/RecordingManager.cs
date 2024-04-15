@@ -260,4 +260,6 @@ public class RecordingManager : MonoBehaviour
     public List<TransformLog> GetRightHandTransformLogs() { return rightHandTransformLogs; }
 
     public RecordingSO GetActiveReplaySO() { return activeRecordingSO; }
+
+    public Dictionary<int, HRLog> GetHRLogs() { return hrLogDic; }
 }

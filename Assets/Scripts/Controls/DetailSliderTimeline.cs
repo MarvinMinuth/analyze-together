@@ -46,7 +46,6 @@ public class DetailSliderTimeline : TimelineNew
     {
         if (!inUse && current && interactionCoordinator.IsLocked())
         {
-            Debug.Log(variableSync.interactorId.Value + " " + NetworkManager.LocalClientId);
             slider.interactable = false;
         }
         else

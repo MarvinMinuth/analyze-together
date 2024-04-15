@@ -60,7 +60,6 @@ public class MaxSlider : NetworkBehaviour
     {
         if (interactionCoordinator.IsLocked() && current && !inUse)
         {
-            Debug.Log(variableSync.interactorId.Value + " " + NetworkManager.LocalClientId);
             maxSlider.interactable = false;
         }
         else

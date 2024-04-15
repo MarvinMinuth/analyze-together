@@ -70,7 +70,6 @@ public class MinSlider : NetworkBehaviour
     {
         if (interactionCoordinator.IsLocked())
         {
-            Debug.Log("Locked");
             moreThanOneInteractor = true;
             return;
         }
@@ -81,11 +80,9 @@ public class MinSlider : NetworkBehaviour
 
         //if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
 
-        Debug.Log("Start Drag");
 
 
         wasRunning = variableSync.isPlaying.Value;
-        Debug.Log("Was Running: " + wasRunning);
         controlRpcs.PauseServerRpc();
         //replayController.SetReceivingInput(true);
     }
@@ -93,7 +90,6 @@ public class MinSlider : NetworkBehaviour
     public void EndDrag()
     {
         //if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
-        Debug.Log("End Drag");
         if (moreThanOneInteractor)
         {
             moreThanOneInteractor = false;

@@ -53,7 +53,6 @@ public class OverviewSliderTimeline : TimelineNew
     {
         if (!inUse && current && interactionCoordinator.IsLocked())
         {
-            Debug.Log(variableSync.interactorId.Value + " " + NetworkManager.LocalClientId);
             slider.interactable = false;
         }
         else
@@ -66,7 +65,6 @@ public class OverviewSliderTimeline : TimelineNew
     {
         if (interactionCoordinator.IsLocked())
         {
-            Debug.Log("Locked");
             moreThanOneInteractor = true;
             return;
         }
@@ -77,8 +75,6 @@ public class OverviewSliderTimeline : TimelineNew
 
         //if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
 
-        Debug.Log("Start Drag");
-
 
         wasRunning = variableSync.isPlaying.Value;
         controlRpcs.PauseServerRpc();
@@ -88,7 +84,6 @@ public class OverviewSliderTimeline : TimelineNew
     public void EndDrag()
     {
         //if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
-        Debug.Log("End Drag");
         if (moreThanOneInteractor)
         {
             moreThanOneInteractor = false;
