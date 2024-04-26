@@ -35,6 +35,10 @@ public class MinSlider : NetworkBehaviour
 
         variableSync.isInteractionInProgress.OnValueChanged += OnInteractionInProgressChanged;
 
+        length = variableSync.replayLength.Value;
+        minSlider.maxValue = length;
+        minSlider.value = variableSync.minFrame.Value;
+
     }
 
     private void OnReplayLengthChanged(int previous, int current)
@@ -56,7 +60,7 @@ public class MinSlider : NetworkBehaviour
 
     private void OnInteractionInProgressChanged(bool previous, bool current)
     {
-        if (interactionCoordinator.IsLocked() && current && !inUse)
+        if (current && !inUse)
         {
             minSlider.interactable = false;
         }

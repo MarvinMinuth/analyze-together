@@ -37,6 +37,10 @@ public class MaxSlider : NetworkBehaviour
 
         variableSync.isInteractionInProgress.OnValueChanged += OnInteractionInProgressChanged;
 
+        length = variableSync.replayLength.Value;
+        maxSlider.maxValue = length;
+        maxSlider.value = variableSync.maxFrame.Value;
+
     }
 
     private void OnReplayLengthChanged(int previous, int current)
@@ -58,7 +62,7 @@ public class MaxSlider : NetworkBehaviour
 
     private void OnInteractionInProgressChanged(bool previous, bool current)
     {
-        if (interactionCoordinator.IsLocked() && current && !inUse)
+        if (current && !inUse)
         {
             maxSlider.interactable = false;
         }
@@ -72,7 +76,6 @@ public class MaxSlider : NetworkBehaviour
     {
         if (interactionCoordinator.IsLocked())
         {
-            Debug.Log("Locked");
             moreThanOneInteractor = true;
             return;
         }
@@ -84,11 +87,8 @@ public class MaxSlider : NetworkBehaviour
 
         //if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
 
-        Debug.Log("Start Drag");
-
 
         wasRunning = variableSync.isPlaying.Value;
-        Debug.Log("Was Running: " + wasRunning);
         controlRpcs.PauseServerRpc();
         //replayController.SetReceivingInput(true);
     }
@@ -96,7 +96,6 @@ public class MaxSlider : NetworkBehaviour
     public void EndDrag()
     {
         //if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
-        Debug.Log("End Drag");
         if (moreThanOneInteractor)
         {
             moreThanOneInteractor = false;

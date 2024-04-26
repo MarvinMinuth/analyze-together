@@ -17,6 +17,10 @@ public class LubState : IHeartbeatState
         {
             coordinator.hapticFeedback.TriggerHaptic();
         }
+        if (coordinator.IsAudioFeedbackActivated())
+        {
+            coordinator.audioFeedback.PlayLub();
+        }
 
     }
     public void Update(HeartrateCoordinator coordinator)
@@ -39,6 +43,10 @@ public class DubState : IHeartbeatState
         {
             coordinator.hapticFeedback.TriggerHaptic();
         }
+        if (coordinator.IsAudioFeedbackActivated())
+        {
+            coordinator.audioFeedback.PlayDub();
+        }
 
     }
     public void Update(HeartrateCoordinator coordinator)
@@ -46,7 +54,7 @@ public class DubState : IHeartbeatState
         if (Time.time - startTime < coordinator.CurrentDubLength)
         {
             coordinator.SetState(new LongPauseState());
-        }      
+        }
     }
 }
 
@@ -60,7 +68,7 @@ public class ShortPauseState : IHeartbeatState
     }
     public void Update(HeartrateCoordinator coordinator)
     {
-        if(Time.time - startTime > coordinator.CurrentShortPauseLength)
+        if (Time.time - startTime > coordinator.CurrentShortPauseLength)
         {
             coordinator.SetState(new DubState());
         }
@@ -79,7 +87,7 @@ public class LongPauseState : IHeartbeatState
         if (Time.time - startTime > coordinator.CurrentLongPauseLength)
         {
             coordinator.SetState(new LubState());
-        }   
+        }
     }
 }
 

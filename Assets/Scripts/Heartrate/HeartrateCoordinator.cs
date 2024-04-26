@@ -83,11 +83,12 @@ public class VisualFeedback
     }
 }
 
-public class HeartrateCoordinator : MonoBehaviour
+public class HeartrateCoordinator : NetworkBehaviour
 {
 
     public static HeartrateCoordinator Instance { get; private set; }
 
+    [SerializeField] private bool syncedFeedback = true;
     public event EventHandler OnVisualFeedbackChanged;
     public event EventHandler OnAudioFeedbackChanged;
     public event EventHandler OnHapticFeedbackChanged;
@@ -124,11 +125,13 @@ public class HeartrateCoordinator : MonoBehaviour
     public float CurrentShortPauseLength { get; private set; }
     public float CurrentLongPauseLength { get; private set; }
 
-    private bool visualFeedbackActivated;
-    private bool audioFeedbackActivated;
-    private bool hapticFeedbackActivated;
+    public bool visualFeedbackActivated;
+    public bool audioFeedbackActivated;
+    public bool hapticFeedbackActivated;
 
     private bool fileLoaded = false;
+
+    private NetworkVariableSync networkVariableSync;
 
     private void Awake()
     {
@@ -145,37 +148,38 @@ public class HeartrateCoordinator : MonoBehaviour
         audioFeedbackActivated = useAudioFeedback;
         hapticFeedbackActivated = useHapticFeedback;
     }
-    void Start()
+
+    public override void OnNetworkSpawn()
     {
-        replayController = ReplayController.Instance;
-        if (replayController == null)
+        base.OnNetworkSpawn();
+
+        networkVariableSync = NetworkVariableSync.Instance;
+
+        networkVariableSync.isRecordingLoaded.OnValueChanged += OnRecordingLoadedChanged;
+
+        SetState(new WaitingHeartbeatState());
+
+        audioFeedback.Initialize(gameObject);
+
+    }
+
+    private void OnRecordingLoadedChanged(bool previous, bool current)
+    {
+        if (!current) // Unloaded
         {
-            Debug.LogError("No ReplayController found");
+            fileLoaded = false;
+            //visualFeedback.End();
+            //audioFeedback.End();
+            SetState(new WaitingHeartbeatState());
+            newBPM = lastBPM = 80;
+            hrLogDic = null;
         }
-
-        replayController.OnReplayControllerLoaded += ReplayController_OnReplayControllerLoaded;
-        replayController.OnReplayControllerUnload += ReplayController_OnReplayControllerUnload;
-
-        //SetActiveAnchorByPosition(position);
-        //hapticFeedback.Initialize();
-        SetState(new WaitingHeartbeatState());
-    }
-
-    private void ReplayController_OnReplayControllerUnload(object sender, EventArgs e)
-    {
-        fileLoaded = false;
-        //visualFeedback.End();
-        //audioFeedback.End();
-        SetState(new WaitingHeartbeatState());
-        newBPM = lastBPM = 80;
-        hrLogDic = null;
-    }
-
-    private void ReplayController_OnReplayControllerLoaded(object sender, EventArgs e)
-    {
-        hrLogDic = RecordingManager.Instance.GetHRLogs();
-        SetState(new IdleHeartbeatState());
-        fileLoaded = true;
+        else // Loaded
+        {
+            hrLogDic = RecordingManager.Instance.GetHRLogs();
+            SetState(new IdleHeartbeatState());
+            fileLoaded = true;
+        }
     }
 
     public void SetState(IHeartbeatState newState)
@@ -197,6 +201,7 @@ public class HeartrateCoordinator : MonoBehaviour
 
     private void Update()
     {
+        if (!fileLoaded) { return; }
         HandleBPM();
         currentState.Update(Instance);
     }
@@ -260,7 +265,6 @@ public class HeartrateCoordinator : MonoBehaviour
     {
         return hapticFeedbackActivated;
     }
-
     public int GetCurrentHeartRate()
     {
         if (!fileLoaded)
@@ -271,7 +275,7 @@ public class HeartrateCoordinator : MonoBehaviour
         foreach (int key in hrLogDic.Keys)
         {
             // Wenn der Schl�ssel kleiner oder gleich dem gegebenen Frame ist
-            if (key <= NetworkVariableSync.Instance.activeFrame.Value)
+            if (key <= networkVariableSync.activeFrame.Value)
             {
                 // Aktualisiere den Wert von nearestFrame, wenn der Schl�ssel gr��er ist
                 if (key > nearestFrame)
@@ -289,5 +293,10 @@ public class HeartrateCoordinator : MonoBehaviour
 
         // Wenn kein passender HRLog gefunden wurde, gib null zur�ck
         return 0;
+    }
+
+    public bool IsFeedbackSynced()
+    {
+        return syncedFeedback;
     }
 }

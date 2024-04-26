@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
 public class TimelineMarkers : MonoBehaviour
 {
     [SerializeField] private GameObject markerPrefab;
-    [SerializeField] private List<TimelineNew> timelines;
+    [SerializeField] private TimelineNew timeline;
     [SerializeField] private float width = 5f;
     public static TimelineMarkers Instance;
     private RecordingManager recordingManager;
@@ -12,8 +13,6 @@ public class TimelineMarkers : MonoBehaviour
 
     private List<GameObject> shownMarkers = new List<GameObject>();
     private List<GameObject> markerPool = new List<GameObject>();
-
-    private bool logsLoaded = false;
 
 
     private void Awake()
@@ -25,32 +24,54 @@ public class TimelineMarkers : MonoBehaviour
     {
         recordingManager = RecordingManager.Instance;
 
-        recordingManager.OnRecordingLoaded += RecordingManager_OnRecordingLoaded;
-        recordingManager.OnRecordingUnloaded += RecordingManager_OnRecordingUnloaded;
+        timeline.OnTimelineChanged += Timeline_OnTimelineChanged;
+        timeline.OnTimelineLoaded += Timeline_OnTimelineLoaded;
+        timeline.OnTimelineReset += Timeline_OnTimelineReset;
 
-        foreach (TimelineNew timeline in timelines)
+        if (timeline.IsTimelineSet())
         {
-            timeline.OnTimelineChanged += Timeline_OnTimelineChanged;
+            Timeline_OnTimelineLoaded(this, System.EventArgs.Empty);
         }
     }
-    private void RecordingManager_OnRecordingUnloaded(object sender, System.EventArgs e)
+    private void Timeline_OnTimelineReset(object sender, System.EventArgs e)
     {
-        logsLoaded = false;
         ClearMarkers();
         unsuccessfulFightCollisionLogDic = null;
     }
 
-    private void RecordingManager_OnRecordingLoaded(object sender, RecordingManager.OnRecordingLoadedEventArgs e)
+    private void Timeline_OnTimelineLoaded(object sender, System.EventArgs e)
     {
         unsuccessfulFightCollisionLogDic = recordingManager.GetUnsuccsessfulFightCollisionDic();
-        logsLoaded = true;
+        if (unsuccessfulFightCollisionLogDic == null)
+        {
+            StartCoroutine(WaitForLogs());
+        }
+        else
+        {
+            Timeline_OnTimelineChanged(sender, e);
+        }
+    }
+
+    IEnumerator WaitForLogs()
+    {
+        while (!recordingManager.FileIsLoaded())
+        {
+            yield return null;
+        }
+
+        unsuccessfulFightCollisionLogDic = recordingManager.GetUnsuccsessfulFightCollisionDic();
+        Timeline_OnTimelineChanged(this, System.EventArgs.Empty);
     }
 
     private void Timeline_OnTimelineChanged(object sender, System.EventArgs e)
     {
-        if (!logsLoaded)
+        if (!timeline.IsTimelineSet())
         {
             return;
+        }
+        if (unsuccessfulFightCollisionLogDic == null)
+        {
+            unsuccessfulFightCollisionLogDic = recordingManager.GetUnsuccsessfulFightCollisionDic();
         }
         ClearMarkers();
         CreateMarkers();
@@ -59,12 +80,9 @@ public class TimelineMarkers : MonoBehaviour
 
     public void CreateMarkers()
     {
-        foreach (TimelineNew timeline in timelines)
+        foreach (KeyValuePair<int, FightCollisionLog[]> log in unsuccessfulFightCollisionLogDic)
         {
-            foreach (KeyValuePair<int, FightCollisionLog[]> log in unsuccessfulFightCollisionLogDic)
-            {
-                SetMarker(timeline, log.Key);
-            }
+            SetMarker(timeline, log.Key);
         }
     }
 
@@ -135,9 +153,6 @@ public class TimelineMarkers : MonoBehaviour
 
     private void OnDestroy()
     {
-        foreach (TimelineNew timeline in timelines)
-        {
-            timeline.OnTimelineChanged -= Timeline_OnTimelineChanged;
-        }
+        timeline.OnTimelineChanged -= Timeline_OnTimelineChanged;
     }
 }

@@ -16,6 +16,24 @@ public class OverviewSliderTimeline : TimelineNew
 
     private ReplayControlRpcs controlRpcs;
 
+
+    protected override void OnRecordingLoadedChanged(bool previous, bool current)
+    {
+        base.OnRecordingLoadedChanged(previous, current);
+        if (current)
+        {
+            slider.maxValue = variableSync.replayLength.Value;
+            slider.minValue = variableSync.minFrame.Value;
+            slider.value = variableSync.activeFrame.Value;
+        }
+        else
+        {
+            slider.maxValue = 1;
+            slider.minValue = 0;
+            slider.value = 0;
+        }
+    }
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -35,7 +53,6 @@ public class OverviewSliderTimeline : TimelineNew
 
     protected override void SetMaxValue(float value)
     {
-        value = value - 1;
         base.SetMaxValue(value);
         maxAccessibleValue = value;
         slider.maxValue = value;
@@ -51,7 +68,7 @@ public class OverviewSliderTimeline : TimelineNew
 
     private void OnInteractionInProgressChanged(bool previous, bool current)
     {
-        if (!inUse && current && interactionCoordinator.IsLocked())
+        if (!inUse && current)
         {
             slider.interactable = false;
         }
@@ -101,10 +118,13 @@ public class OverviewSliderTimeline : TimelineNew
 
     public void OnTimelineValueChanged()
     {
-        if (!inUse || moreThanOneInteractor) { return; }
+        if (!inUse || moreThanOneInteractor)
+        {
+            return;
+        }
 
-        if (slider.value < minAccessibleValue) { slider.value = minAccessibleValue; }
-        if (slider.value > maxAccessibleValue) { slider.value = maxAccessibleValue; }
+        if (slider.value < variableSync.minFrame.Value) { slider.value = variableSync.minFrame.Value; }
+        if (slider.value > variableSync.maxFrame.Value) { slider.value = variableSync.maxFrame.Value; }
 
         float value = slider.value;
 

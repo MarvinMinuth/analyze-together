@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using ES3Internal;
 using TMPro;
 using UnityEngine;
+using System.Linq;
+using System;
 
 public class HeartrateGraph : MonoBehaviour
 {
@@ -18,34 +20,35 @@ public class HeartrateGraph : MonoBehaviour
     [SerializeField] private int baselineHeartrate = 80;
     private RecordingManager recordingManager;
     private RectTransform sliderRectTransform;
-    private bool logsLoaded = false;
     private bool baselineSet = false;
+    private bool timelineSet = false;
 
     void Start()
     {
         recordingManager = RecordingManager.Instance;
-        recordingManager.OnRecordingLoaded += RecordingManager_OnRecordingLoaded;
-        recordingManager.OnRecordingUnloaded += RecordingManager_OnRecordingUnloaded;
 
+        timeline.OnTimelineLoaded += Timeline_OnTimelineLoaded;
         timeline.OnTimelineChanged += Timeline_OnTimelineChanged;
+        timeline.OnTimelineReset += Timeline_OnTimelineReset;
 
         sliderRectTransform = timeline.GetComponent<RectTransform>();
     }
 
-    private void RecordingManager_OnRecordingUnloaded(object sender, System.EventArgs e)
+    private void Timeline_OnTimelineLoaded(object sender, System.EventArgs e)
     {
-        logsLoaded = false;
-        DeleteGraph();
+        timelineSet = true;
+        SetupHeartrateGraph(recordingManager.GetHRLog());
     }
 
-    private void RecordingManager_OnRecordingLoaded(object sender, RecordingManager.OnRecordingLoadedEventArgs e)
+    private void Timeline_OnTimelineReset(object sender, System.EventArgs e)
     {
-        logsLoaded = true;
+        DeleteGraph();
+        timelineSet = false;
     }
 
     private void Timeline_OnTimelineChanged(object sender, System.EventArgs e)
     {
-        if (!logsLoaded)
+        if (!timelineSet)
         {
             return;
         }
@@ -55,11 +58,9 @@ public class HeartrateGraph : MonoBehaviour
 
     public void SetupHeartrateGraph(Dictionary<int, HRLog> hrLogDic)
     {
-
         lineRenderer.startWidth = lineWidth;
         int minFrame = (int)timeline.GetMinValue();
         int maxFrame = (int)timeline.GetMaxValue();
-
         float width = sliderRectTransform.rect.width;
 
         if (!baselineSet)
@@ -72,74 +73,64 @@ public class HeartrateGraph : MonoBehaviour
         // Anpassen des normalisierten X-Wertes, um von minFrame zu starten
         float normalizedXValue = width / (maxFrame - minFrame);
 
-        lineRenderer.positionCount = hrLogDic.Count;
-
         List<Vector3> positions = new List<Vector3>();
 
-        int count = 0;
+        // Initialize with start and end positions at minY (default or some base value)
+        float baseY = GetNormalizedHeartRatePosition(hrLogDic[FindClosestKey(minFrame)].heartRate);
+        positions.Add(new Vector3(-(width / 2), baseY, 0)); // Startpunkt
+
         foreach (KeyValuePair<int, HRLog> log in hrLogDic)
         {
-            count++;
             if (log.Value.heartRate < 20 || log.Key < minFrame || log.Key > maxFrame)
             {
-                if (log.Key > maxFrame && positions[positions.Count - 1].x != width / 2)
-                {
-                    Vector3 endPosition = new Vector3(width / 2, positions[positions.Count - 1].y, 0);
-                    positions.Add(endPosition);
-                }
                 continue; // Überspringe niedrige Herzfrequenzen
             }
 
             float positionX = ((log.Key - minFrame) * normalizedXValue) - (width / 2);
             float positionY = GetNormalizedHeartRatePosition(log.Value.heartRate);
-
             Vector3 position = new Vector3(positionX, positionY, 0);
-
-            if (positionX != -(width / 2) && positions.Count == 0)
-            {
-                positionX = -(width / 2);
-                Vector3 startPosition = new Vector3(positionX, positionY, 0);
-                positions.Add(startPosition);
-            }
-
             positions.Add(position);
-
-            if (count == hrLogDic.Count)
-            {
-                Vector3 endPosition = new Vector3(width / 2, positionY, 0);
-                positions.Add(endPosition);
-            }
         }
 
+        baseY = GetNormalizedHeartRatePosition(hrLogDic[FindClosestKey(maxFrame)].heartRate);
+        positions.Add(new Vector3(width / 2, baseY, 0)); // Endpunkt
+
+        // Set positions to the line renderer
         lineRenderer.positionCount = positions.Count;
         for (int i = 0; i < positions.Count; i++)
         {
             lineRenderer.SetPosition(i, positions[i]);
         }
 
-        // Optional: Farben und Vereinfachung einstellen
+        // Optional: Simplify the line to reduce complexity
         lineRenderer.Simplify(0.01f);
     }
 
     public float GetNormalizedHeartRatePosition(int heartRate)
     {
-        // minY und maxY basieren auf der tatsächlichen Höhe der Timeline
         float height = sliderRectTransform.rect.height;
-        float baseMinY = -height / 2;  // Grundlegende minY-Position ohne overheight-Anpassung
 
-        float baseMaxY = height / 2;   // Grundlegende maxY-Position ohne overheight-Anpassung
+        float baseMinY = -height / 2 * overheight;
+        float baseMaxY = height / 2 * overheight;
 
-        // Normalisiere die Herzfrequenz im gewünschten Y-Bereich
         float normalizedHR = (float)(heartRate - minHR) / (maxHR - minHR);
-        // Berechne die Position basierend auf dem normalisierten Herzfrequenzwert und der Höhe
         float positionY = normalizedHR * (baseMaxY - baseMinY) + baseMinY;
 
-        // Anpassen der Y-Position basierend auf overheight
-        // Der Mittelpunkt (0) bleibt gleich, aber die Spreizung um diesen Punkt wird durch overheight angepasst
-        positionY *= overheight;
-
-        return positionY;
+        return positionY * overheight;
     }
+
+
+
+    public int FindClosestKey(int targetValue)
+    {
+        Dictionary<int, HRLog> hrLog = recordingManager.GetHRLog();
+        // Verwende LINQ, um den Schlüssel zu finden, der dem gegebenen Wert am nächsten ist
+        var closestKey = hrLog.Keys.OrderBy(key => Math.Abs(key - targetValue)) // Sortiere die Schlüssel nach ihrer Differenz zum Zielwert
+                                   .First(); // Nimm den ersten, also den nächsten Schlüssel
+
+        return closestKey;
+    }
+
 
 
 

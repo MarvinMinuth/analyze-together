@@ -22,21 +22,40 @@ public class DetailSliderTimeline : TimelineNew
         variableSync.activeFrame.OnValueChanged += OnActiveFrameChanged;
         variableSync.isInteractionInProgress.OnValueChanged += OnInteractionInProgressChanged;
     }
+
+    protected override void OnRecordingLoadedChanged(bool previous, bool current)
+    {
+        base.OnRecordingLoadedChanged(previous, current);
+        if (current)
+        {
+            slider.maxValue = variableSync.replayLength.Value;
+            slider.minValue = variableSync.minFrame.Value;
+            slider.value = variableSync.activeFrame.Value;
+        }
+        else
+        {
+            slider.maxValue = 1;
+            slider.minValue = 0;
+            slider.value = 0;
+        }
+    }
     protected override void SetMinAccessibleValue(float value)
     {
+        //if (!timelineSet) return;
         SetMinValue(value);
         base.SetMinAccessibleValue(value);
         slider.minValue = value;
     }
     protected override void SetMaxAccessibleValue(float value)
     {
+        //if (!timelineSet) return;
         SetMaxValue(value);
         base.SetMaxAccessibleValue(value);
         slider.maxValue = value;
     }
     private void OnActiveFrameChanged(int previous, int current)
     {
-        if (!interactionCoordinator.IsLocked())
+        if (!inUse)
         {
             slider.value = current;
         }
@@ -44,7 +63,7 @@ public class DetailSliderTimeline : TimelineNew
 
     private void OnInteractionInProgressChanged(bool previous, bool current)
     {
-        if (!inUse && current && interactionCoordinator.IsLocked())
+        if (!inUse && current)
         {
             slider.interactable = false;
         }
@@ -58,7 +77,6 @@ public class DetailSliderTimeline : TimelineNew
     {
         if (interactionCoordinator.IsLocked())
         {
-            Debug.Log("Locked");
             moreThanOneInteractor = true;
             return;
         }
@@ -69,11 +87,8 @@ public class DetailSliderTimeline : TimelineNew
 
         //if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
 
-        Debug.Log("Start Drag");
-
 
         wasRunning = variableSync.isPlaying.Value;
-        Debug.Log("Was Running: " + wasRunning);
         controlRpcs.PauseServerRpc();
         //replayController.SetReceivingInput(true);
     }
@@ -81,7 +96,6 @@ public class DetailSliderTimeline : TimelineNew
     public void EndDrag()
     {
         //if (!variableSync.IsInteractor(NetworkManager.LocalClientId)) { return; }
-        Debug.Log("End Drag");
         if (moreThanOneInteractor)
         {
             moreThanOneInteractor = false;

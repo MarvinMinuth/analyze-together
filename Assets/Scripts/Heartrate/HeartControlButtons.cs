@@ -1,10 +1,13 @@
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HeartControlButtons : MonoBehaviour
+public class HeartControlButtons : NetworkBehaviour
 {
     private HeartrateCoordinator heartrateCoordinator;
+    private HeartrateFeedbackControlRpcs heartrateFeedbackControlRpcs;
+    private NetworkVariableSync networkVariableSync;
     [SerializeField] private Button audioFeedbackButton;
     [SerializeField] private Button visualFeedbackButton;
     [SerializeField] private Button hapticFeedbackButton;
@@ -15,22 +18,68 @@ public class HeartControlButtons : MonoBehaviour
         {
             heartrateCoordinator = HeartrateCoordinator.Instance;
         }
-    }
-    private void Awake()
-    {
-        //audioFeedbackButton.onClick.AddListener(OnAudioFeedbackButtonPressed);
-        //visualFeedbackButton.onClick.AddListener(OnVisualFeedbackButtonPressed);
-        hapticFeedbackButton.onClick.AddListener(OnHapticFeedbackButtonPressed);
+        if (heartrateFeedbackControlRpcs == null)
+        {
+            heartrateFeedbackControlRpcs = HeartrateFeedbackControlRpcs.Instance;
+        }
     }
     void Start()
     {
-        heartrateCoordinator = HeartrateCoordinator.Instance;
+        if (heartrateCoordinator == null)
+        {
+            heartrateCoordinator = HeartrateCoordinator.Instance;
+        }
+        if (heartrateFeedbackControlRpcs == null)
+        {
+            heartrateFeedbackControlRpcs = HeartrateFeedbackControlRpcs.Instance;
+        }
 
-        heartrateCoordinator.OnAudioFeedbackChanged += HeartrateCoordinator_OnAudioFeedbackChanged;
-        heartrateCoordinator.OnHapticFeedbackChanged += HeartrateCoordinator_OnHapticFeedbackChanged;
-        heartrateCoordinator.OnVisualFeedbackChanged += HeartrateCoordinator_OnVisualFeedbackChanged;
+        if (!heartrateCoordinator.IsFeedbackSynced())
+        {
+            audioFeedbackButton.onClick.AddListener(OnAudioFeedbackButtonPressed);
+            //visualFeedbackButton.onClick.AddListener(OnVisualFeedbackButtonPressed);
+            hapticFeedbackButton.onClick.AddListener(OnHapticFeedbackButtonPressed);
 
-        CheckAllButtonStatus();
+            heartrateCoordinator.OnAudioFeedbackChanged += HeartrateCoordinator_OnAudioFeedbackChanged;
+            heartrateCoordinator.OnHapticFeedbackChanged += HeartrateCoordinator_OnHapticFeedbackChanged;
+            heartrateCoordinator.OnVisualFeedbackChanged += HeartrateCoordinator_OnVisualFeedbackChanged;
+
+            CheckAllButtonStatus();
+        }
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        networkVariableSync = NetworkVariableSync.Instance;
+        if (heartrateCoordinator.IsFeedbackSynced())
+        {
+            audioFeedbackButton.onClick.AddListener(heartrateFeedbackControlRpcs.ChangeAudioFeedbackServerRpc);
+            visualFeedbackButton.onClick.AddListener(heartrateFeedbackControlRpcs.ChangeVisualFeedbackServerRpc);
+            hapticFeedbackButton.onClick.AddListener(heartrateFeedbackControlRpcs.ChangeHapticFeedbackServerRpc);
+
+            networkVariableSync.audioFeedbackEnabled.OnValueChanged += NetworkVariableSyn_OnAudioFeedbackChanged;
+            networkVariableSync.hapticFeedbackEnabled.OnValueChanged += NetworkVariableSyn_OnHapticFeedbackChanged;
+            networkVariableSync.visualFeedbackEnabled.OnValueChanged += NetworkVariableSyn_OnVisualFeedbackChanged;
+
+            CheckAllButtonStatus();
+        }
+    }
+
+    private void NetworkVariableSyn_OnVisualFeedbackChanged(bool previous, bool current)
+    {
+        CheckButtonStatus(visualFeedbackButton, current);
+    }
+
+    private void NetworkVariableSyn_OnHapticFeedbackChanged(bool previous, bool current)
+    {
+        CheckButtonStatus(hapticFeedbackButton, current);
+    }
+
+    private void NetworkVariableSyn_OnAudioFeedbackChanged(bool previous, bool current)
+    {
+        CheckButtonStatus(audioFeedbackButton, current);
     }
 
     private void HeartrateCoordinator_OnVisualFeedbackChanged(object sender, System.EventArgs e)
@@ -82,8 +131,17 @@ public class HeartControlButtons : MonoBehaviour
 
     public void CheckAllButtonStatus()
     {
-        CheckButtonStatus(visualFeedbackButton, heartrateCoordinator.IsVisualFeedbackActivated());
-        CheckButtonStatus(hapticFeedbackButton, heartrateCoordinator.IsHapticFeedbackActivated());
-        CheckButtonStatus(audioFeedbackButton, heartrateCoordinator.IsAudioFeedbackActivated());
+        if (heartrateCoordinator.IsFeedbackSynced())
+        {
+            CheckButtonStatus(visualFeedbackButton, networkVariableSync.visualFeedbackEnabled.Value);
+            CheckButtonStatus(hapticFeedbackButton, networkVariableSync.hapticFeedbackEnabled.Value);
+            CheckButtonStatus(audioFeedbackButton, networkVariableSync.audioFeedbackEnabled.Value);
+        }
+        else
+        {
+            CheckButtonStatus(visualFeedbackButton, heartrateCoordinator.IsVisualFeedbackActivated());
+            CheckButtonStatus(hapticFeedbackButton, heartrateCoordinator.IsHapticFeedbackActivated());
+            CheckButtonStatus(audioFeedbackButton, heartrateCoordinator.IsAudioFeedbackActivated());
+        }
     }
 }

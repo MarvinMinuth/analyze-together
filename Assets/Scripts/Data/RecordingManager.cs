@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /*
@@ -18,7 +19,7 @@ public enum Savefile
     TaskThree,
 }
 
-public class RecordingManager : MonoBehaviour
+public class RecordingManager : NetworkBehaviour
 {
     public static RecordingManager Instance { get; private set; }
 
@@ -102,6 +103,84 @@ public class RecordingManager : MonoBehaviour
         }
     }
 
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        if (!IsServer)
+        {
+            NetworkVariableSync.Instance.isRecordingLoaded.OnValueChanged += OnRecordingLoadedChanged;
+            ClientLoad();
+        }
+    }
+
+    private void OnRecordingLoadedChanged(bool previousValue, bool newValue)
+    {
+        if (newValue)
+        {
+            ClientLoad();
+        }
+        else
+        {
+            ClientUnload();
+
+        }
+    }
+
+    private void ClientLoad()
+    {
+        StartLoad(NetworkVariableSync.Instance.savefile.Value);
+        if (!activeLogDataManager.AreLogsReady() && !activeLogDataManager.IsLoading())
+        {
+            activeLogDataManager.LoadReplay();
+        }
+        StartCoroutine(ClientWaitForLogs());
+
+    }
+
+    IEnumerator ClientWaitForLogs()
+    {
+        while (!activeLogDataManager.AreLogsReady())
+        {
+            yield return null;
+        }
+
+        headTransformLogs = activeLogDataManager.GetHeadTransformLogs();
+        leftHandTransformLogs = activeLogDataManager.GetLeftHandTransformLogs();
+        rightHandTransformLogs = activeLogDataManager.GetRightHandTransformLogs();
+
+        bottomArmLogs = activeLogDataManager.GetBottomArmLogs();
+        middleArmLogs = activeLogDataManager.GetMiddleArmLogs();
+        topArmLogs = activeLogDataManager.GetTopArmLogs();
+
+        bottomArmHighlights = activeLogDataManager.GetBottomArmHighlights();
+        middleArmHighlights = activeLogDataManager.GetMiddleArmHighlights();
+        topArmHighlights = activeLogDataManager.GetTopArmHighlights();
+
+        armCollisionLogDic = activeLogDataManager.GetArmCollisionLogs();
+        succsessfulArmCollisionLogDic = activeLogDataManager.GetSuccsessfulArmCollisionLogs();
+        unsuccsessfulArmCollisionLogDic = activeLogDataManager.GetUnsuccsessfulArmCollisionLogs();
+        fightCollisionLogDic = activeLogDataManager.GetFightCollisionLogs();
+        succsessfulFightCollisionLogDic = activeLogDataManager.GetSuccsessfulFightCollisionLogs();
+        unsuccsessfulFightCollisionLogDic = activeLogDataManager.GetUnsuccsessfulFightCollisionLogs();
+        hrLogDic = activeLogDataManager.GetHRLogs();
+
+        ClientOnLogsLoaded();
+    }
+
+    private void ClientOnLogsLoaded()
+    {
+        isLoading = false;
+        maxFrame = Mathf.Min(headTransformLogs.Count - 1, leftHandTransformLogs.Count - 1, rightHandTransformLogs.Count - 1);
+        fileLoaded = true;
+    }
+
+    private void ClientUnload()
+    {
+        maxFrame = 0;
+        activeLogDataManager = null;
+        fileLoaded = false;
+    }
+
     public void Load(RecordingSO recordingSO)
     {
         StartLoad(recordingSO.savefile);
@@ -149,7 +228,7 @@ public class RecordingManager : MonoBehaviour
     {
         isLoading = false;
 
-        maxFrame = headTransformLogs.Count - 1;
+        maxFrame = Mathf.Min(headTransformLogs.Count - 1, leftHandTransformLogs.Count - 1, rightHandTransformLogs.Count - 1);
 
         fileLoaded = true;
 
@@ -167,6 +246,10 @@ public class RecordingManager : MonoBehaviour
 
     public void Unload()
     {
+        maxFrame = 0;
+        activeLogDataManager = null;
+        activeRecordingSO = null;
+
         fileLoaded = false;
 
         headTransformLogs = null;

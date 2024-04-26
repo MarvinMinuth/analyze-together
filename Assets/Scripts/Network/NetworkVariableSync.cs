@@ -8,6 +8,7 @@ public class NetworkVariableSync : NetworkBehaviour
     public static NetworkVariableSync Instance;
 
     private ReplayController replayController;
+    private HeartrateCoordinator heartrateCoordinator;
 
     public NetworkVariable<Savefile> savefile = new NetworkVariable<Savefile>();
     public NetworkVariable<int> minFrame = new NetworkVariable<int>();
@@ -20,10 +21,16 @@ public class NetworkVariableSync : NetworkBehaviour
 
     public NetworkVariable<bool> isInteractionInProgress = new NetworkVariable<bool>();
     public NetworkVariable<ulong> interactorId = new NetworkVariable<ulong>();
+    public NetworkVariable<bool> isRecordingLoaded = new NetworkVariable<bool>();
+
+    public NetworkVariable<bool> visualFeedbackEnabled = new NetworkVariable<bool>();
+    public NetworkVariable<bool> audioFeedbackEnabled = new NetworkVariable<bool>();
+    public NetworkVariable<bool> hapticFeedbackEnabled = new NetworkVariable<bool>();
 
     private void Awake()
     {
         Instance = this;
+        isRecordingLoaded.Value = false;
     }
 
     private void Start()
@@ -37,6 +44,7 @@ public class NetworkVariableSync : NetworkBehaviour
             replayController = ReplayController.Instance;
 
             replayController.OnReplayControllerLoaded += ReplayController_OnReplayControllerLoaded;
+            replayController.OnReplayControllerUnload += ReplayController_OnReplayControllerUnload;
             replayController.OnFrameChanged += ReplayController_OnFrameChanged;
             replayController.OnPlay += ReplayController_OnPlay;
             replayController.OnPause += ReplayController_OnPause;
@@ -44,7 +52,42 @@ public class NetworkVariableSync : NetworkBehaviour
             replayController.OnRepeat += ReplayController_OnRepeat;
             replayController.OnReplayWindowSet += ReplayController_OnReplayWindowSet;
             replayController.OnReplayWindowReset += ReplayController_OnReplayWindowReset;
+
+            /*
+            heartrateCoordinator = HeartrateCoordinator.Instance;
+            visualFeedbackEnabled.Value = heartrateCoordinator.visualFeedbackActivated;
+            audioFeedbackEnabled.Value = heartrateCoordinator.audioFeedbackActivated;
+            hapticFeedbackEnabled.Value = heartrateCoordinator.hapticFeedbackActivated;
+
+            heartrateCoordinator.OnVisualFeedbackChanged += HeartrateCoordinator_OnVisualFeedbackChanged;
+            heartrateCoordinator.OnAudioFeedbackChanged += HeartrateCoordinator_OnAudioFeedbackChanged;
+            heartrateCoordinator.OnHapticFeedbackChanged += HeartrateCoordinator_OnHapticFeedbackChanged;
+            */
         }
+    }
+
+    private void HeartrateCoordinator_OnHapticFeedbackChanged(object sender, System.EventArgs e)
+    {
+        hapticFeedbackEnabled.Value = heartrateCoordinator.hapticFeedbackActivated;
+    }
+
+    private void HeartrateCoordinator_OnAudioFeedbackChanged(object sender, System.EventArgs e)
+    {
+        audioFeedbackEnabled.Value = heartrateCoordinator.audioFeedbackActivated;
+    }
+
+    private void HeartrateCoordinator_OnVisualFeedbackChanged(object sender, System.EventArgs e)
+    {
+        visualFeedbackEnabled.Value = heartrateCoordinator.visualFeedbackActivated;
+    }
+
+    private void ReplayController_OnReplayControllerUnload(object sender, System.EventArgs e)
+    {
+        isRecordingLoaded.Value = false;
+        minFrame.Value = 0;
+        activeFrame.Value = 0;
+        replayLength.Value = 1;
+        maxFrame.Value = 1;
     }
 
     private void ReplayController_OnReplayWindowReset(object sender, System.EventArgs e)
@@ -62,6 +105,7 @@ public class NetworkVariableSync : NetworkBehaviour
     {
         savefile.Value = RecordingManager.Instance.GetActiveReplaySO().savefile;
         replayLength.Value = replayController.GetReplayLength();
+        isRecordingLoaded.Value = true;
     }
 
     private void ReplayController_OnFrameChanged(object sender, ReplayController.OnFrameChangedEventArgs e)

@@ -293,9 +293,10 @@ public class ReplayController : MonoBehaviour
         OnReplayControllerUnload?.Invoke(this, EventArgs.Empty);
 
         minPlayFrame = 0;
-        totalFrames = 0;
-        maxPlayFrame = 0;
+        totalFrames = 1;
+        maxPlayFrame = 1;
         recordingManager.Unload();
+        isDataLoaded = false;
     }
 
     public bool IsPlaying()

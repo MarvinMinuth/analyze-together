@@ -38,6 +38,7 @@ public class ArmsCoordinator : NetworkBehaviour
     [SerializeField] private Transform offsetTransform;
     [SerializeField] private Transform fightingSceneTransform;
     private Vector3 offset;
+    private bool isDataLoaded = false;
 
     void Start()
     {
@@ -67,13 +68,15 @@ public class ArmsCoordinator : NetworkBehaviour
 
     private void ReplayController_OnReplayDataReady(object sender, System.EventArgs e)
     {
-        bottomArmLogs = recordingManager.GetBottomArmLogs();     
+        bottomArmLogs = recordingManager.GetBottomArmLogs();
         middleArmLogs = recordingManager.GetMiddleArmLogs();
         topArmLogs = recordingManager.GetTopArmLogs();
+        isDataLoaded = true;
     }
 
     private void ReplayController_OnReplayControllerUnload(object sender, System.EventArgs e)
     {
+        isDataLoaded = false;
         bottomArmLogs = null;
         middleArmLogs = null;
         topArmLogs = null;
@@ -82,6 +85,10 @@ public class ArmsCoordinator : NetworkBehaviour
 
     private void ReplayController_OnFrameChanged(object sender, ReplayController.OnFrameChangedEventArgs e)
     {
+        if (!isDataLoaded)
+        {
+            return;
+        }
         SetArmBases(e.frame);
     }
 
@@ -93,11 +100,11 @@ public class ArmsCoordinator : NetworkBehaviour
     }
     private void SetBottomArmBase(int frame)
     {
-        if(frame > bottomArmLogs.Count - 1)
+        if (frame > bottomArmLogs.Count - 1)
         {
             frame = bottomArmLogs.Count - 1;
         }
-        if(frame < 0)
+        if (frame < 0)
         {
             frame = 0;
         }
@@ -111,11 +118,11 @@ public class ArmsCoordinator : NetworkBehaviour
 
     private void SetMiddleArmBase(int frame)
     {
-        if(frame > middleArmLogs.Count - 1)
+        if (frame > middleArmLogs.Count - 1)
         {
             frame = middleArmLogs.Count - 1;
         }
-        if(frame < 0)
+        if (frame < 0)
         {
             frame = 0;
         }
@@ -129,11 +136,11 @@ public class ArmsCoordinator : NetworkBehaviour
 
     private void SetTopArmBase(int frame)
     {
-        if(frame > topArmLogs.Count - 1)
+        if (frame > topArmLogs.Count - 1)
         {
             frame = topArmLogs.Count - 1;
         }
-        if(frame < 0)
+        if (frame < 0)
         {
             frame = 0;
         }
@@ -205,7 +212,7 @@ public class ArmsCoordinator : NetworkBehaviour
         GameObject spawnArm = armSlot.transform.Find(arm).gameObject;
         if (spawnArm == null || (activeArms.ContainsKey(armBase) && activeArms[armBase] == spawnArm))
         {
-            return;   
+            return;
         }
         DetachFromArmBase(armBase);
         spawnArm.GetComponent<DummyArmVisuals>().Show();
@@ -248,7 +255,7 @@ public class ArmsCoordinator : NetworkBehaviour
     {
         DetachAll();
 
-        foreach(GameObject armBase in armBases)
+        foreach (GameObject armBase in armBases)
         {
             //armBase.transform.localPosition = Vector3.zero;
             armBase.transform.localRotation = Quaternion.identity;
@@ -259,7 +266,7 @@ public class ArmsCoordinator : NetworkBehaviour
         {
             armAttachement.GetComponent<DummyArmVisuals>().Hide();
         }
-        
+
 
         foreach (Transform armAttachement in middleArmAttachements)
         {
