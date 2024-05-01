@@ -13,13 +13,17 @@ public class LubState : IHeartbeatState
     public void Enter(HeartrateCoordinator coordinator)
     {
         startTime = Time.time;
-        if (coordinator.IsHapticFeedbackActivated())
+        if (coordinator.HapticFeedbackActivated)
         {
             coordinator.hapticFeedback.TriggerHaptic();
         }
-        if (coordinator.IsAudioFeedbackActivated())
+        if (coordinator.AudioFeedbackActivated)
         {
             coordinator.audioFeedback.PlayLub();
+        }
+        if (coordinator.VisualFeedbackActivated && coordinator.visualFeedback != null)
+        {
+            coordinator.visualFeedback.Highlight();
         }
 
     }
@@ -39,13 +43,17 @@ public class DubState : IHeartbeatState
     public void Enter(HeartrateCoordinator coordinator)
     {
         startTime = Time.time;
-        if (coordinator.IsHapticFeedbackActivated())
+        if (coordinator.HapticFeedbackActivated)
         {
             coordinator.hapticFeedback.TriggerHaptic();
         }
-        if (coordinator.IsAudioFeedbackActivated())
+        if (coordinator.AudioFeedbackActivated)
         {
             coordinator.audioFeedback.PlayDub();
+        }
+        if (coordinator.VisualFeedbackActivated && coordinator.visualFeedback != null)
+        {
+            coordinator.visualFeedback.Dim();
         }
 
     }
@@ -65,6 +73,11 @@ public class ShortPauseState : IHeartbeatState
     public void Enter(HeartrateCoordinator coordinator)
     {
         startTime = Time.time;
+
+        if (coordinator.VisualFeedbackActivated && coordinator.visualFeedback != null)
+        {
+            coordinator.visualFeedback.EndDim();
+        }
     }
     public void Update(HeartrateCoordinator coordinator)
     {

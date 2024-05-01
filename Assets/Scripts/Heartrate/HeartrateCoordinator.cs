@@ -3,6 +3,7 @@ using UnityEngine.XR.Interaction.Toolkit;
 using TMPro;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 using Unity.Netcode;
 
 [System.Serializable]
@@ -53,33 +54,82 @@ public class AudioFeedback
 [System.Serializable]
 public class VisualFeedback
 {
-    private Vector3 startScale;
-    private Vector3 endScale;
-    private GameObject obj;
+    private List<MeshRenderer> meshRenderers;
+    private Dictionary<MeshRenderer, Material> objMaterials;
+    private Dictionary<MeshRenderer, Color> objStartColors;
+    public Color highlightColor = Color.white;
+    public float highlightSpeed = 15f;
 
-    public float scaleFactor = 1.5f;
-    public float scaleSpeed = 25f;
-
-    public void Initialize(GameObject obj)
+    public void Initialize(List<MeshRenderer> renderers)
     {
-        this.obj = obj;
-        startScale = obj.transform.localScale;
-        endScale = new Vector3(startScale.x * scaleFactor, startScale.y * scaleFactor, startScale.z * scaleFactor);
+        meshRenderers = renderers;
+        objMaterials = new Dictionary<MeshRenderer, Material>();
+        objStartColors = new Dictionary<MeshRenderer, Color>();
+
+        foreach (MeshRenderer renderer in renderers)
+        {
+            objMaterials[renderer] = renderer.material;
+            objStartColors[renderer] = objMaterials[renderer].GetColor("_EmissionColor");
+        }
     }
 
-    public void ScaleUp()
+    public void Highlight()
     {
-        obj.transform.localScale = Vector3.Lerp(obj.transform.localScale, endScale, scaleSpeed * Time.deltaTime);
+        List<Material> seenMaterials = new List<Material>();
+        foreach (MeshRenderer renderer in meshRenderers)
+        {
+            if (objMaterials[renderer] != null)
+            {
+                if (!seenMaterials.Contains(objMaterials[renderer]))
+                {
+                    objMaterials[renderer].SetColor("_EmissionColor", Color.Lerp(objMaterials[renderer].GetColor("_EmissionColor"), highlightColor, highlightSpeed * Time.deltaTime));
+                    seenMaterials.Add(objMaterials[renderer]);
+                }
+
+
+            }
+        }
     }
 
-    public void ScaleDown()
+    public void Dim()
     {
-        obj.transform.localScale = Vector3.Lerp(obj.transform.localScale, startScale, scaleSpeed * Time.deltaTime);
+        foreach (MeshRenderer renderer in meshRenderers)
+        {
+            List<Material> seenMaterials = new List<Material>();
+            if (objMaterials[renderer] != null)
+            {
+
+                if (!seenMaterials.Contains(objMaterials[renderer]))
+                {
+                    objMaterials[renderer].SetColor("_EmissionColor", Color.Lerp(objMaterials[renderer].GetColor("_EmissionColor"), objStartColors[renderer], highlightSpeed * Time.deltaTime));
+                    seenMaterials.Add(objMaterials[renderer]);
+                }
+            }
+        }
+    }
+
+    public void EndDim()
+    {
+        foreach (MeshRenderer renderer in meshRenderers)
+        {
+            List<Material> seenMaterials = new List<Material>();
+            if (objMaterials[renderer] != null)
+            {
+
+                if (!seenMaterials.Contains(objMaterials[renderer]))
+                {
+                    objMaterials[renderer].SetColor("_EmissionColor", objStartColors[renderer]);
+                    seenMaterials.Add(objMaterials[renderer]);
+                }
+            }
+        }
     }
 
     public void End()
     {
-        obj.transform.localScale = startScale;
+        meshRenderers = null;
+        objMaterials = null;
+        objStartColors = null;
     }
 }
 
@@ -92,11 +142,12 @@ public class HeartrateCoordinator : NetworkBehaviour
     public event EventHandler OnVisualFeedbackChanged;
     public event EventHandler OnAudioFeedbackChanged;
     public event EventHandler OnHapticFeedbackChanged;
+    public event EventHandler OnUpdateState;
 
     [SerializeField] private TMP_Text heartrateDisplay;
 
-    private float newBPM = 80f;
-    private float lastBPM = 80f;
+    private float newBPM = 0f;
+    private float lastBPM = 0f;
 
     [Header("Feedback Options")]
     public bool useVisualFeedback = true;
@@ -115,8 +166,11 @@ public class HeartrateCoordinator : NetworkBehaviour
     public HapticFeedback hapticFeedback;
     public VisualFeedback visualFeedback;
 
-    private IHeartbeatState currentState;
+    public IHeartbeatState CurrentState { get; private set; }
     private ReplayController replayController;
+
+    private HeartrateFeedbackControlRpcs heartrateFeedbackControlRpcs;
+    private HeartrateNetworkVariables heartrateNetworkVariables;
 
     private Dictionary<int, HRLog> hrLogDic;
 
@@ -125,13 +179,11 @@ public class HeartrateCoordinator : NetworkBehaviour
     public float CurrentShortPauseLength { get; private set; }
     public float CurrentLongPauseLength { get; private set; }
 
-    public bool visualFeedbackActivated;
-    public bool audioFeedbackActivated;
-    public bool hapticFeedbackActivated;
+    public bool VisualFeedbackActivated { get; private set; }
+    public bool AudioFeedbackActivated { get; private set; }
+    public bool HapticFeedbackActivated { get; private set; }
 
-    private bool fileLoaded = false;
-
-    private NetworkVariableSync networkVariableSync;
+    private bool FileLoaded { get; set; } = false;
 
     private void Awake()
     {
@@ -144,66 +196,133 @@ public class HeartrateCoordinator : NetworkBehaviour
             Debug.LogError("More than one HeartrateCoordinator found");
         }
 
-        //visualFeedbackActivated = useVisualFeedback;
-        audioFeedbackActivated = useAudioFeedback;
-        hapticFeedbackActivated = useHapticFeedback;
+        VisualFeedbackActivated = useVisualFeedback;
+        AudioFeedbackActivated = useAudioFeedback;
+        HapticFeedbackActivated = useHapticFeedback;
     }
 
+    private void Initialize()
+    {
+        replayController = ReplayController.Instance;
+        heartrateFeedbackControlRpcs = HeartrateFeedbackControlRpcs.Instance;
+        heartrateNetworkVariables = HeartrateNetworkVariables.Instance;
+
+        if (FighterCoordinator.Instance != null && FighterCoordinator.Instance.IsInitialized)
+        {
+            visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
+        }
+        else
+        {
+            if (FighterCoordinator.Instance == null)
+            {
+                NetworkServerSetup.Instance.OnServerSetupComplete += (sender, e) =>
+                {
+                    visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
+                };
+            }
+            else
+            {
+                FighterCoordinator.Instance.OnFighterInitialized += (sender, e) =>
+                {
+                    visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
+                };
+            }
+        }
+
+
+        replayController.OnReplayControllerLoaded += OnReplayControllerLoaded;
+        replayController.OnReplayControllerUnload += OnReplayControllerUnload;
+
+        SetState(new WaitingHeartbeatState());
+        audioFeedback.Initialize(gameObject);
+
+        if (!IsServer)
+        {
+            heartrateNetworkVariables.audioFeedbackActivated.OnValueChanged += AudioFeedbackActivated_OnValueChanged;
+            heartrateNetworkVariables.visualFeedbackActivated.OnValueChanged += VisualFeedbackActivated_OnValueChanged;
+            heartrateNetworkVariables.hapticFeedbackActivated.OnValueChanged += HapticFeedbackActivated_OnValueChanged;
+
+            AudioFeedbackActivated = heartrateNetworkVariables.audioFeedbackActivated.Value;
+            VisualFeedbackActivated = heartrateNetworkVariables.visualFeedbackActivated.Value;
+            HapticFeedbackActivated = heartrateNetworkVariables.hapticFeedbackActivated.Value;
+
+        }
+
+        OnAudioFeedbackChanged?.Invoke(this, EventArgs.Empty);
+        OnVisualFeedbackChanged?.Invoke(this, EventArgs.Empty);
+        OnHapticFeedbackChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void AudioFeedbackActivated_OnValueChanged(bool previousValue, bool newValue)
+    {
+        AudioFeedbackActivated = newValue;
+        OnAudioFeedbackChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void VisualFeedbackActivated_OnValueChanged(bool previousValue, bool newValue)
+    {
+        VisualFeedbackActivated = newValue;
+        OnVisualFeedbackChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void HapticFeedbackActivated_OnValueChanged(bool previousValue, bool newValue)
+    {
+        HapticFeedbackActivated = newValue;
+        OnHapticFeedbackChanged?.Invoke(this, EventArgs.Empty);
+    }
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
-        networkVariableSync = NetworkVariableSync.Instance;
-
-        networkVariableSync.isRecordingLoaded.OnValueChanged += OnRecordingLoadedChanged;
-
-        SetState(new WaitingHeartbeatState());
-
-        audioFeedback.Initialize(gameObject);
-
+        Initialize();
     }
 
-    private void OnRecordingLoadedChanged(bool previous, bool current)
+    public void OnReplayControllerLoaded(object sender, System.EventArgs e)
     {
-        if (!current) // Unloaded
-        {
-            fileLoaded = false;
-            //visualFeedback.End();
-            //audioFeedback.End();
-            SetState(new WaitingHeartbeatState());
-            newBPM = lastBPM = 80;
-            hrLogDic = null;
-        }
-        else // Loaded
-        {
-            hrLogDic = RecordingManager.Instance.GetHRLogs();
-            SetState(new IdleHeartbeatState());
-            fileLoaded = true;
-        }
+        hrLogDic = ReplayController.Instance.GetRecordingData().GetHRLogs();
+        visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
+        SetState(new IdleHeartbeatState());
+        FileLoaded = true;
+    }
+
+    public void OnReplayControllerUnload(object sender, System.EventArgs e)
+    {
+        FileLoaded = false;
+        SetState(new WaitingHeartbeatState());
+        visualFeedback.End();
+        newBPM = lastBPM = 0;
+        heartrateDisplay.text = "0";
+        hrLogDic = null;
     }
 
     public void SetState(IHeartbeatState newState)
     {
-        currentState = newState;
+        OnUpdateState?.Invoke(this, EventArgs.Empty);
+        CurrentState = newState;
         newState.Enter(this);
     }
 
     public void ResetCoordinator()
     {
-        //visualFeedback.End();
-        //audioFeedback.End();
-        visualFeedbackActivated = useVisualFeedback;
-        audioFeedbackActivated = useAudioFeedback;
-        hapticFeedbackActivated = useHapticFeedback;
+        if (visualFeedback != null)
+        {
+            visualFeedback.End();
+        }
+        audioFeedback.End();
+        VisualFeedbackActivated = useVisualFeedback;
+        AudioFeedbackActivated = useAudioFeedback;
+        HapticFeedbackActivated = useHapticFeedback;
         SetState(new WaitingHeartbeatState());
-        newBPM = lastBPM = 80;
+        newBPM = lastBPM = 0;
+        heartrateDisplay.text = "0";
     }
 
     private void Update()
     {
-        if (!fileLoaded) { return; }
+        if (!FileLoaded) { return; }
         HandleBPM();
-        currentState.Update(Instance);
+
+        if (newBPM <= 0f) { return; }
+        CurrentState.Update(Instance);
     }
 
     private void HandleBPM()
@@ -211,6 +330,9 @@ public class HeartrateCoordinator : NetworkBehaviour
         newBPM = GetCurrentHeartRate();
         if (newBPM < 0f) { return; }
         heartrateDisplay.text = newBPM.ToString();
+
+        if (newBPM == 0f) { return; }
+
         if (newBPM != lastBPM)
         {
             UpdatePhaseLengths();
@@ -229,45 +351,64 @@ public class HeartrateCoordinator : NetworkBehaviour
         CurrentLongPauseLength = beatInterval * longPause;
     }
 
-    public bool ChangeAudioFeedback()
+    public void InitChangeAudioFeedback()
     {
-        audioFeedbackActivated = !audioFeedbackActivated;
+        if (IsServer)
+        {
+            ChangeAudioFeedback();
+        }
+        else
+        {
+            heartrateFeedbackControlRpcs.ChangeAudioFeedbackServerRpc();
+        }
+    }
 
+    private void ChangeAudioFeedback()
+    {
+        AudioFeedbackActivated = !AudioFeedbackActivated;
         OnAudioFeedbackChanged?.Invoke(this, EventArgs.Empty);
-        return audioFeedbackActivated;
     }
 
-    public bool ChangeVisualFeedback()
+    public void InitChangeVisualFeedback()
     {
-        visualFeedbackActivated = !visualFeedbackActivated;
+        if (IsServer)
+        {
+            ChangeVisualFeedback();
+        }
+        else
+        {
+            heartrateFeedbackControlRpcs.ChangeVisualFeedbackServerRpc();
+        }
+    }
 
+    private void ChangeVisualFeedback()
+    {
+        VisualFeedbackActivated = !VisualFeedbackActivated;
+        visualFeedback.EndDim();
         OnVisualFeedbackChanged?.Invoke(this, EventArgs.Empty);
-        return visualFeedbackActivated;
     }
 
-    public bool ChangeHapticFeedback()
+    public void InitChangeHapticFeedback()
     {
-        hapticFeedbackActivated = !hapticFeedbackActivated;
+        if (IsServer)
+        {
+            ChangeHapticFeedback();
+        }
+        else
+        {
+            heartrateFeedbackControlRpcs.ChangeHapticFeedbackServerRpc();
+        }
+    }
 
+    private void ChangeHapticFeedback()
+    {
+        HapticFeedbackActivated = !HapticFeedbackActivated;
         OnHapticFeedbackChanged?.Invoke(this, EventArgs.Empty);
-        return hapticFeedbackActivated;
     }
 
-    public bool IsAudioFeedbackActivated()
-    {
-        return audioFeedbackActivated;
-    }
-    public bool IsVisualFeedbackActivated()
-    {
-        return visualFeedbackActivated;
-    }
-    public bool IsHapticFeedbackActivated()
-    {
-        return hapticFeedbackActivated;
-    }
     public int GetCurrentHeartRate()
     {
-        if (!fileLoaded)
+        if (!FileLoaded)
         {
             return 0;
         }
@@ -275,7 +416,7 @@ public class HeartrateCoordinator : NetworkBehaviour
         foreach (int key in hrLogDic.Keys)
         {
             // Wenn der Schl�ssel kleiner oder gleich dem gegebenen Frame ist
-            if (key <= networkVariableSync.activeFrame.Value)
+            if (key <= replayController.GetActiveFrame())
             {
                 // Aktualisiere den Wert von nearestFrame, wenn der Schl�ssel gr��er ist
                 if (key > nearestFrame)
@@ -292,7 +433,17 @@ public class HeartrateCoordinator : NetworkBehaviour
         }
 
         // Wenn kein passender HRLog gefunden wurde, gib null zur�ck
-        return 0;
+        return hrLogDic[FindClosestKey(replayController.GetActiveFrame())].heartRate;
+    }
+
+    public int FindClosestKey(int targetValue)
+    {
+        Dictionary<int, HRLog> hrLog = replayController.GetRecordingData().GetHRLogs();
+        // Verwende LINQ, um den Schlüssel zu finden, der dem gegebenen Wert am nächsten ist
+        var closestKey = hrLog.Keys.OrderBy(key => Math.Abs(key - targetValue)) // Sortiere die Schlüssel nach ihrer Differenz zum Zielwert
+                                   .First(); // Nimm den ersten, also den nächsten Schlüssel
+
+        return closestKey;
     }
 
     public bool IsFeedbackSynced()

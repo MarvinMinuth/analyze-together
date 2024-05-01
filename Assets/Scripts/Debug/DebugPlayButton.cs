@@ -10,6 +10,6 @@ public class DebugPlayButton : MonoBehaviour
     {
         replayController = ReplayController.Instance;
 
-        playButton.onClick.AddListener(replayController.Play);
+        playButton.onClick.AddListener(replayController.InitPlay);
     }
 }

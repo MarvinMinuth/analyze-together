@@ -23,42 +23,54 @@ public class ReplayControlRpcs : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void PlayServerRpc()
     {
-        replayController.Play();
+        replayController.InitPlay();
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void PauseServerRpc()
     {
-        replayController.Pause();
+        replayController.InitPause();
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void StopServerRpc()
     {
-        replayController.Stop();
+        replayController.InitStop();
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void ChangeDirectionServerRpc()
     {
-        replayController.ChangeDirection();
+        replayController.InitChangeDirection();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ChangeDirectionServerRpc(Direction direction)
+    {
+        replayController.InitChangeDirection(direction);
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void RepeatServerRpc()
     {
-        replayController.ChangeLooping();
+        replayController.InitChangeLooping();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void RepeatServerRpc(bool shouldLoop)
+    {
+        replayController.InitChangeLooping(shouldLoop);
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void SetFrameServerRpc(int frame)
     {
-        replayController.SetFrame(frame);
+        replayController.InitSetFrame(frame);
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void ChangeReplayWindowServerRpc(int minFrame, int maxFrame)
     {
-        replayController.ChangeReplayWindow(minFrame, maxFrame);
+        replayController.InitChangeReplayWindow(minFrame, maxFrame);
     }
 }

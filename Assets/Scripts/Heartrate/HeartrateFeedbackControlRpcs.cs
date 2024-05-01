@@ -22,18 +22,18 @@ public class HeartrateFeedbackControlRpcs : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void ChangeAudioFeedbackServerRpc()
     {
-        heartrateCoordinator.ChangeAudioFeedback();
+        heartrateCoordinator.InitChangeAudioFeedback();
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void ChangeHapticFeedbackServerRpc()
     {
-        heartrateCoordinator.ChangeHapticFeedback();
+        heartrateCoordinator.InitChangeHapticFeedback();
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void ChangeVisualFeedbackServerRpc()
     {
-        heartrateCoordinator.ChangeVisualFeedback();
+        heartrateCoordinator.InitChangeVisualFeedback();
     }
 }

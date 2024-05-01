@@ -1,43 +1,71 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using Unity.Netcode;
-using UnityEngine;
 
 public class InteractionCoordinator : NetworkBehaviour
 {
     public static InteractionCoordinator Instance;
-    private bool isLocked;
-
-    private NetworkVariableSync variableSync;
+    public NetworkVariable<bool> isInteractionInProgress;
+    public NetworkVariable<ulong> interactorId;
 
     private void Awake()
     {
         Instance = this;
-        isLocked = false;
     }
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
-        variableSync = NetworkVariableSync.Instance;
-
-        variableSync.isInteractionInProgress.OnValueChanged += OnInteractionInProgressChanged;
-        isLocked = variableSync.isInteractionInProgress.Value;
+    }
+    public void InitStartInteraction()
+    {
+        if (IsServer)
+        {
+            StartInteraction();
+        }
+        else
+        {
+            RequestAccessServerRpc();
+        }
     }
 
-    private void OnInteractionInProgressChanged(bool previous, bool current)
+    private void StartInteraction()
     {
-        isLocked = current;
+        if (isInteractionInProgress.Value) { return; }
+        interactorId.Value = NetworkManager.LocalClientId;
+        isInteractionInProgress.Value = true;
     }
 
-    public bool IsLocked()
+    public void EndInteraction()
     {
-        return isLocked;
+        if (IsServer)
+        {
+            isInteractionInProgress.Value = false;
+        }
+        else
+        {
+            FreeAccessServerRpc();
+        }
     }
 
-    public void Lock()
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestAccessServerRpc(ServerRpcParams serverRpcParams = default)
     {
-        isLocked = true;
+        if (!isInteractionInProgress.Value)
+        {
+            interactorId.Value = serverRpcParams.Receive.SenderClientId;
+            isInteractionInProgress.Value = true;
+        }
+
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void FreeAccessServerRpc()
+    {
+        isInteractionInProgress.Value = false;
+    }
+
+    public bool IsInteractor(ulong senderId)
+    {
+        return (isInteractionInProgress.Value && senderId == interactorId.Value);
     }
 }

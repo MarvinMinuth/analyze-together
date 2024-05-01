@@ -9,8 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7730653912702960917}
-  - component: {fileID: 2177987207736318197}
   - component: {fileID: 6878127483619798551}
+  - component: {fileID: 9122483864977675225}
+  - component: {fileID: 3561861005668179865}
+  - component: {fileID: 8290846622997401340}
   m_Layer: 0
   m_Name: ReplayManager
   m_TagString: Untagged
@@ -33,22 +35,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2177987207736318197
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1750583660390707787}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f88009163d8d7224abe721813371efe8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tutorialLogDataManager: {fileID: 0}
-  taskOneLogDataManager: {fileID: 0}
-  taskTwoLogDataManager: {fileID: 0}
-  taskThreeLogDataManager: {fileID: 0}
 --- !u!114 &6878127483619798551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61,5 +47,58 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fd3bfff0e4c70a4aa0fd289e9ce23fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loadReplayOnStart: 0
   loadOnStartReplaySO: {fileID: 11400000, guid: 54d7590b4d8482b4891af86259c8feb3, type: 2}
+--- !u!114 &9122483864977675225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1750583660390707787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39b8f7845ae086648929ceb5fa17fa79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  saveFile:
+    m_InternalValue: 0
+  minPlayFrame:
+    m_InternalValue: 0
+  maxPlayFrame:
+    m_InternalValue: 0
+  activeFrame:
+    m_InternalValue: 0
+  isPlaying:
+    m_InternalValue: 0
+  direction:
+    m_InternalValue: 0
+  isLooping:
+    m_InternalValue: 0
+--- !u!114 &3561861005668179865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1750583660390707787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7ceb2ba442f9574486f7759621bebc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tutorialLogDataManager: {fileID: 0}
+  taskOneLogDataManager: {fileID: 0}
+  taskTwoLogDataManager: {fileID: 0}
+  taskThreeLogDataManager: {fileID: 0}
+--- !u!114 &8290846622997401340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1750583660390707787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1138021d6d8e2be43a177f9b44a91970, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

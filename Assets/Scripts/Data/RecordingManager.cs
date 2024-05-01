@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
 
 /*
@@ -10,7 +8,7 @@ using UnityEngine;
  */
 
 // Savefile enums are used to easily match Logs and RecordingSOs
-public enum Savefile
+public enum SaveFile
 {
     None,
     Tutorial,
@@ -19,49 +17,27 @@ public enum Savefile
     TaskThree,
 }
 
-public class RecordingManager : NetworkBehaviour
+public class RecordingManager : MonoBehaviour
 {
     public static RecordingManager Instance { get; private set; }
 
     public event EventHandler<OnRecordingLoadedEventArgs> OnRecordingLoaded;
     public class OnRecordingLoadedEventArgs
     {
-        public RecordingSO recordingSO;
+        public RecordingData loadedRecordingData;
     }
 
-    public event EventHandler OnRecordingUnloaded;
+    public event EventHandler OnRecordingUnload;
 
-    public LogDataManager tutorialLogDataManager, taskOneLogDataManager, taskTwoLogDataManager, taskThreeLogDataManager;
+    [SerializeField] private LogDataManager tutorialLogDataManager, taskOneLogDataManager, taskTwoLogDataManager, taskThreeLogDataManager;
 
     private LogDataManager activeLogDataManager;
-
-    private int maxFrame;
-
-    private List<TransformLog> headTransformLogs;
-    private List<TransformLog> leftHandTransformLogs;
-    private List<TransformLog> rightHandTransformLogs;
-
-    private List<ArmLog> bottomArmLogs;
-    private List<ArmLog> middleArmLogs;
-    private List<ArmLog> topArmLogs;
-
-    private List<int> bottomArmHighlights;
-    private List<int> middleArmHighlights;
-    private List<int> topArmHighlights;
-    private Dictionary<int, ArmCollisionLog[]> armCollisionLogDic;
-    private Dictionary<int, ArmCollisionLog[]> succsessfulArmCollisionLogDic;
-    private Dictionary<int, ArmCollisionLog[]> unsuccsessfulArmCollisionLogDic;
-    private Dictionary<int, FightCollisionLog[]> fightCollisionLogDic;
-    private Dictionary<int, FightCollisionLog[]> succsessfulFightCollisionLogDic;
-    private Dictionary<int, FightCollisionLog[]> unsuccsessfulFightCollisionLogDic;
-
-    private Dictionary<int, HRLog> hrLogDic;
 
     // the states don't need much logic, so we just use bools instead
     private bool isLoading = false;
     private bool fileLoaded = false;
 
-    private RecordingSO activeRecordingSO;
+    private RecordingData recordingData;
 
     private void Awake()
     {
@@ -75,7 +51,7 @@ public class RecordingManager : NetworkBehaviour
         }
     }
 
-    private void StartLoad(Savefile saveFile)
+    public void Load(SaveFile saveFile)
     {
         if (isLoading) return;
 
@@ -88,138 +64,35 @@ public class RecordingManager : NetworkBehaviour
 
         switch (saveFile)
         {
-            case Savefile.Tutorial:
+            case SaveFile.Tutorial:
                 activeLogDataManager = tutorialLogDataManager;
                 break;
-            case Savefile.TaskOne:
+            case SaveFile.TaskOne:
                 activeLogDataManager = taskOneLogDataManager;
                 break;
-            case Savefile.TaskTwo:
+            case SaveFile.TaskTwo:
                 activeLogDataManager = taskTwoLogDataManager;
                 break;
-            case Savefile.TaskThree:
+            case SaveFile.TaskThree:
                 activeLogDataManager = taskThreeLogDataManager;
                 break;
         }
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-        if (!IsServer)
-        {
-            NetworkVariableSync.Instance.isRecordingLoaded.OnValueChanged += OnRecordingLoadedChanged;
-            ClientLoad();
-        }
-    }
-
-    private void OnRecordingLoadedChanged(bool previousValue, bool newValue)
-    {
-        if (newValue)
-        {
-            ClientLoad();
-        }
-        else
-        {
-            ClientUnload();
-
-        }
-    }
-
-    private void ClientLoad()
-    {
-        StartLoad(NetworkVariableSync.Instance.savefile.Value);
-        if (!activeLogDataManager.AreLogsReady() && !activeLogDataManager.IsLoading())
-        {
-            activeLogDataManager.LoadReplay();
-        }
-        StartCoroutine(ClientWaitForLogs());
-
-    }
-
-    IEnumerator ClientWaitForLogs()
-    {
-        while (!activeLogDataManager.AreLogsReady())
-        {
-            yield return null;
-        }
-
-        headTransformLogs = activeLogDataManager.GetHeadTransformLogs();
-        leftHandTransformLogs = activeLogDataManager.GetLeftHandTransformLogs();
-        rightHandTransformLogs = activeLogDataManager.GetRightHandTransformLogs();
-
-        bottomArmLogs = activeLogDataManager.GetBottomArmLogs();
-        middleArmLogs = activeLogDataManager.GetMiddleArmLogs();
-        topArmLogs = activeLogDataManager.GetTopArmLogs();
-
-        bottomArmHighlights = activeLogDataManager.GetBottomArmHighlights();
-        middleArmHighlights = activeLogDataManager.GetMiddleArmHighlights();
-        topArmHighlights = activeLogDataManager.GetTopArmHighlights();
-
-        armCollisionLogDic = activeLogDataManager.GetArmCollisionLogs();
-        succsessfulArmCollisionLogDic = activeLogDataManager.GetSuccsessfulArmCollisionLogs();
-        unsuccsessfulArmCollisionLogDic = activeLogDataManager.GetUnsuccsessfulArmCollisionLogs();
-        fightCollisionLogDic = activeLogDataManager.GetFightCollisionLogs();
-        succsessfulFightCollisionLogDic = activeLogDataManager.GetSuccsessfulFightCollisionLogs();
-        unsuccsessfulFightCollisionLogDic = activeLogDataManager.GetUnsuccsessfulFightCollisionLogs();
-        hrLogDic = activeLogDataManager.GetHRLogs();
-
-        ClientOnLogsLoaded();
-    }
-
-    private void ClientOnLogsLoaded()
-    {
-        isLoading = false;
-        maxFrame = Mathf.Min(headTransformLogs.Count - 1, leftHandTransformLogs.Count - 1, rightHandTransformLogs.Count - 1);
-        fileLoaded = true;
-    }
-
-    private void ClientUnload()
-    {
-        maxFrame = 0;
-        activeLogDataManager = null;
-        fileLoaded = false;
-    }
-
-    public void Load(RecordingSO recordingSO)
-    {
-        StartLoad(recordingSO.savefile);
-
-        activeRecordingSO = recordingSO;
 
         if (!activeLogDataManager.AreLogsReady() && !activeLogDataManager.IsLoading())
         {
             activeLogDataManager.LoadReplay();
         }
 
-        StartCoroutine(WaitForLogs());
+        StartCoroutine(WaitForLogs(saveFile));
     }
-    IEnumerator WaitForLogs()
+    IEnumerator WaitForLogs(SaveFile saveFile)
     {
         while (!activeLogDataManager.AreLogsReady())
         {
             yield return null;
         }
 
-        headTransformLogs = activeLogDataManager.GetHeadTransformLogs();
-        leftHandTransformLogs = activeLogDataManager.GetLeftHandTransformLogs();
-        rightHandTransformLogs = activeLogDataManager.GetRightHandTransformLogs();
-
-        bottomArmLogs = activeLogDataManager.GetBottomArmLogs();
-        middleArmLogs = activeLogDataManager.GetMiddleArmLogs();
-        topArmLogs = activeLogDataManager.GetTopArmLogs();
-
-        bottomArmHighlights = activeLogDataManager.GetBottomArmHighlights();
-        middleArmHighlights = activeLogDataManager.GetMiddleArmHighlights();
-        topArmHighlights = activeLogDataManager.GetTopArmHighlights();
-
-        armCollisionLogDic = activeLogDataManager.GetArmCollisionLogs();
-        succsessfulArmCollisionLogDic = activeLogDataManager.GetSuccsessfulArmCollisionLogs();
-        unsuccsessfulArmCollisionLogDic = activeLogDataManager.GetUnsuccsessfulArmCollisionLogs();
-        fightCollisionLogDic = activeLogDataManager.GetFightCollisionLogs();
-        succsessfulFightCollisionLogDic = activeLogDataManager.GetSuccsessfulFightCollisionLogs();
-        unsuccsessfulFightCollisionLogDic = activeLogDataManager.GetUnsuccsessfulFightCollisionLogs();
-        hrLogDic = activeLogDataManager.GetHRLogs();
+        recordingData = new RecordingData(saveFile, activeLogDataManager.GetHeadTransformLogs(), activeLogDataManager.GetLeftHandTransformLogs(), activeLogDataManager.GetRightHandTransformLogs(), activeLogDataManager.GetBottomArmLogs(), activeLogDataManager.GetMiddleArmLogs(), activeLogDataManager.GetTopArmLogs(), activeLogDataManager.GetBottomArmHighlights(), activeLogDataManager.GetMiddleArmHighlights(), activeLogDataManager.GetTopArmHighlights(), activeLogDataManager.GetArmCollisionLogs(), activeLogDataManager.GetSuccsessfulArmCollisionLogs(), activeLogDataManager.GetUnsuccsessfulArmCollisionLogs(), activeLogDataManager.GetFightCollisionLogs(), activeLogDataManager.GetSuccsessfulFightCollisionLogs(), activeLogDataManager.GetUnsuccsessfulFightCollisionLogs(), activeLogDataManager.GetHRLogs());
 
         OnLogsLoaded();
     }
@@ -228,51 +101,20 @@ public class RecordingManager : NetworkBehaviour
     {
         isLoading = false;
 
-        maxFrame = Mathf.Min(headTransformLogs.Count - 1, leftHandTransformLogs.Count - 1, rightHandTransformLogs.Count - 1);
-
         fileLoaded = true;
 
         OnRecordingLoaded?.Invoke(this, new OnRecordingLoadedEventArgs
         {
-            recordingSO = activeRecordingSO
+            loadedRecordingData = recordingData
         });
-
-    }
-
-    public int GetMaxFrame()
-    {
-        return maxFrame;
     }
 
     public void Unload()
     {
-        maxFrame = 0;
+        OnRecordingUnload?.Invoke(this, EventArgs.Empty);
+
         activeLogDataManager = null;
-        activeRecordingSO = null;
-
-        fileLoaded = false;
-
-        headTransformLogs = null;
-        leftHandTransformLogs = null;
-        rightHandTransformLogs = null;
-
-        bottomArmLogs = null;
-        middleArmLogs = null;
-        topArmLogs = null;
-
-        bottomArmHighlights = null;
-        middleArmHighlights = null;
-        topArmHighlights = null;
-
-        armCollisionLogDic = null;
-        succsessfulArmCollisionLogDic = null;
-        unsuccsessfulArmCollisionLogDic = null;
-        fightCollisionLogDic = null;
-        succsessfulFightCollisionLogDic = null;
-        unsuccsessfulFightCollisionLogDic = null;
-        hrLogDic = null;
-
-        OnRecordingUnloaded?.Invoke(this, EventArgs.Empty);
+        recordingData = null;
     }
 
     /* In HR-Manager �berf�hren
@@ -307,42 +149,4 @@ public class RecordingManager : NetworkBehaviour
         return 0;
     }
     */
-
-    public List<ArmLog> GetBottomArmLogs()
-    {
-        return bottomArmLogs;
-    }
-
-    public List<ArmLog> GetTopArmLogs() { return topArmLogs; }
-    public List<ArmLog> GetMiddleArmLogs() { return middleArmLogs; }
-
-    public List<int> GetBottomArmHighlights() { return bottomArmHighlights; }
-    public List<int> GetTopArmHighlights() { return topArmHighlights; }
-    public List<int> GetMiddleArmHighlights() { return middleArmHighlights; }
-
-    public Dictionary<int, ArmCollisionLog[]> GetArmCollisionDic() { return armCollisionLogDic; }
-
-    public Dictionary<int, ArmCollisionLog[]> GetSuccsessfulArmCollisionDic() { return succsessfulArmCollisionLogDic; }
-    public Dictionary<int, ArmCollisionLog[]> GetUnsuccsessfulArmCollisionDic() { return unsuccsessfulArmCollisionLogDic; }
-
-    public Dictionary<int, FightCollisionLog[]> GetFightCollisionDic() { return fightCollisionLogDic; }
-    public Dictionary<int, FightCollisionLog[]> GetSuccsessfulFightCollisionDic() { return succsessfulFightCollisionLogDic; }
-    public Dictionary<int, FightCollisionLog[]> GetUnsuccsessfulFightCollisionDic() { return unsuccsessfulFightCollisionLogDic; }
-
-    public Dictionary<int, HRLog> GetHRLog() { return hrLogDic; }
-
-    public bool IsLoading() { return isLoading; }
-
-    public bool FileIsLoaded()
-    {
-        return fileLoaded;
-    }
-
-    public List<TransformLog> GetHeadTransformLogs() { return headTransformLogs; }
-    public List<TransformLog> GetLeftHandTransformLogs() { return leftHandTransformLogs; }
-    public List<TransformLog> GetRightHandTransformLogs() { return rightHandTransformLogs; }
-
-    public RecordingSO GetActiveReplaySO() { return activeRecordingSO; }
-
-    public Dictionary<int, HRLog> GetHRLogs() { return hrLogDic; }
 }

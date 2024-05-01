@@ -15,7 +15,7 @@ public class LoadButton : MonoBehaviour
 
     private void LoadReplay()
     {
-        replayController.Load(replaySO);
+        replayController.InitLoad(replaySO.saveFile);
     }
 
 }

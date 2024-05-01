@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: TutorialReplaySO
   m_EditorClassIdentifier: 
   fileName: TutorialLog.json
-  savefile: 1
+  saveFile: 1

@@ -118,10 +118,6 @@ public class LogDataManager : MonoBehaviour
     [SerializeField] private RecordingSO replaySO;
     private string attachedToBottom, attachedToTop, attachedToMiddle;
     private string saveFile;
-
-    List<string> armLogs = new List<string>();
-    List<string> transformLogs = new List<string>();
-
     List<ArmLog> bottomArmLogs = new List<ArmLog>();
     List<ArmLog> middleArmLogs = new List<ArmLog>();
     List<ArmLog> topArmLogs = new List<ArmLog>();
@@ -149,7 +145,7 @@ public class LogDataManager : MonoBehaviour
 
     private void Start()
     {
-        saveFile = Application.persistentDataPath + "/"+ fileManager.getFolderName() + "/" + replaySO.fileName;
+        saveFile = Application.persistentDataPath + "/" + fileManager.getFolderName() + "/" + replaySO.fileName;
         StartCoroutine(WaitUntilFilesAreReady());
         LoadReplay();
     }
@@ -167,138 +163,138 @@ public class LogDataManager : MonoBehaviour
         loading = true;
         logsReady = false;
         ES3.CacheFile(saveFile);
-                 
-            var recording = new ES3Settings(saveFile, ES3.Location.Cache);
 
-            int frame = 0;
-            foreach (string key in ES3.GetKeys(recording))
+        var recording = new ES3Settings(saveFile, ES3.Location.Cache);
+
+        int frame = 0;
+        foreach (string key in ES3.GetKeys(recording))
+        {
+            if (key.Contains("TransformLog"))
             {
-                if (key.Contains("TransformLog"))
+                TransformLog transformLog = ES3.Load<TransformLog>(key, recording);
+                if (transformLog.TransformType == 1)
                 {
-                    TransformLog transformLog = ES3.Load<TransformLog>(key, recording);
-                    if (transformLog.TransformType == 1)
-                    {
-                        headLogs.Add(transformLog);
-                    }
-                    else if (transformLog.TransformType == 2)
-                    {
-                        leftHandLogs.Add(transformLog);
-                    }
-                    else
-                    {
-                        rightHandLogs.Add(transformLog);
-                    }
+                    headLogs.Add(transformLog);
                 }
-                else if (key.Contains("ArmLog"))
+                else if (transformLog.TransformType == 2)
                 {
-                    ArmLog armLog = ES3.Load<ArmLog>(key, recording);
-                    if (armLog.armBase == 1)
-                    {
-                        bottomArmLogs.Add(armLog);
-                        if (!armLog.armType.Equals(attachedToBottom))
-                        {
-                            bottomArmHighlights.Add(frame);
-                            attachedToBottom = armLog.armType;
-                        }
-                    }
-                    else if (armLog.armBase == 2)
-                    {
-                        middleArmLogs.Add(armLog);
-                        if (!armLog.armType.Equals(attachedToMiddle))
-                        {
-                            middleArmHighlights.Add(frame);
-                            attachedToMiddle = armLog.armType;
-                        }
-                    }
-                    else
-                    {
-                        topArmLogs.Add(armLog);
-                        if (!armLog.armType.Equals(attachedToTop))
-                        {
-                            topArmHighlights.Add(frame);
-                            attachedToTop = armLog.armType;
-                        }
-                        frame++;
-                    }
-                }
-                else if (key.Contains("ArmCollision"))
-                {
-                    ArmCollisionLog armCollisionLog = ES3.Load<ArmCollisionLog>(key, recording);
-                    if(!armCollisionLogs.ContainsKey(frame))
-                    {
-                    armCollisionLogs.Add(frame, new ArmCollisionLog[3]);
-                    }
-
-                    string armBase = armCollisionLog.armBase;
-                    int position = 0;
-                    if (armBase.Equals("ArmBase 1")) position = 0;
-                    else if (armBase.Equals("ArmBase 2")) position = 1;
-                    else position = 2;
-
-                    armCollisionLogs[frame][position] = armCollisionLog;
-                    if (armCollisionLog.ExpectedCollisionType == armCollisionLog.ReceiveCollisionType)
-                    {
-                        if (!successfulArmCollisionDic.ContainsKey(frame))
-                        {
-                            successfulArmCollisionDic.Add(frame, new ArmCollisionLog[3]);
-                        }
-                        successfulArmCollisionDic[frame][position] = armCollisionLog;
-                    }
-                    else
-                    {
-                        if (!unsuccessfulArmCollisionDic.ContainsKey(frame))
-                        {
-                            unsuccessfulArmCollisionDic.Add(frame, new ArmCollisionLog[3]);
-                        }
-                        unsuccessfulArmCollisionDic[frame][position] = armCollisionLog;
-                    }
-                }
-                else if (key.Contains("FightCollision"))
-                {
-                    FightCollisionLog fightCollisionLog = ES3.Load<FightCollisionLog>(key, recording);
-                    if (!fightCollisionLogs.ContainsKey(frame))
-                    {
-                        fightCollisionLogs.Add(frame, new FightCollisionLog[3]);
-                    }
-
-                    string armBase = fightCollisionLog.armBase;
-                    int position = 0;
-                    if (armBase.Equals("ArmBase 1")) position = 0;
-                    else if (armBase.Equals("ArmBase 2")) position = 1;
-                    else position = 2;
-
-                    fightCollisionLogs[frame][position] = fightCollisionLog;
-                    if (fightCollisionLog.ExpectedCollisionType == fightCollisionLog.ReceiveCollisionType)
-                    {
-                        if (!successfulFightCollisionDic.ContainsKey(frame))
-                        {
-                            successfulFightCollisionDic.Add(frame, new FightCollisionLog[3]);
-                        }
-                        successfulFightCollisionDic[frame][position] = fightCollisionLog;
-                    }
-                    else
-                    {
-                        if (!unsuccessfulFightCollisionDic.ContainsKey(frame))
-                        {
-                            unsuccessfulFightCollisionDic.Add(frame, new FightCollisionLog[3]);
-                        }
-                        unsuccessfulFightCollisionDic[frame][position] = fightCollisionLog;
-                    }
-            }
-                else if (key.Contains("HRLog"))
-                {
-                    HRLog hrLog = ES3.Load<HRLog>(key, recording);
-                    if (HRLogs.ContainsKey(frame))
-                    {
-                        HRLogs.Remove(frame);
-                    }
-                    HRLogs.Add(frame, hrLog);
+                    leftHandLogs.Add(transformLog);
                 }
                 else
                 {
-                    continue;
+                    rightHandLogs.Add(transformLog);
                 }
             }
+            else if (key.Contains("ArmLog"))
+            {
+                ArmLog armLog = ES3.Load<ArmLog>(key, recording);
+                if (armLog.armBase == 1)
+                {
+                    bottomArmLogs.Add(armLog);
+                    if (!armLog.armType.Equals(attachedToBottom))
+                    {
+                        bottomArmHighlights.Add(frame);
+                        attachedToBottom = armLog.armType;
+                    }
+                }
+                else if (armLog.armBase == 2)
+                {
+                    middleArmLogs.Add(armLog);
+                    if (!armLog.armType.Equals(attachedToMiddle))
+                    {
+                        middleArmHighlights.Add(frame);
+                        attachedToMiddle = armLog.armType;
+                    }
+                }
+                else
+                {
+                    topArmLogs.Add(armLog);
+                    if (!armLog.armType.Equals(attachedToTop))
+                    {
+                        topArmHighlights.Add(frame);
+                        attachedToTop = armLog.armType;
+                    }
+                    frame++;
+                }
+            }
+            else if (key.Contains("ArmCollision"))
+            {
+                ArmCollisionLog armCollisionLog = ES3.Load<ArmCollisionLog>(key, recording);
+                if (!armCollisionLogs.ContainsKey(frame))
+                {
+                    armCollisionLogs.Add(frame, new ArmCollisionLog[3]);
+                }
+
+                string armBase = armCollisionLog.armBase;
+                int position = 0;
+                if (armBase.Equals("ArmBase 1")) position = 0;
+                else if (armBase.Equals("ArmBase 2")) position = 1;
+                else position = 2;
+
+                armCollisionLogs[frame][position] = armCollisionLog;
+                if (armCollisionLog.ExpectedCollisionType == armCollisionLog.ReceiveCollisionType)
+                {
+                    if (!successfulArmCollisionDic.ContainsKey(frame))
+                    {
+                        successfulArmCollisionDic.Add(frame, new ArmCollisionLog[3]);
+                    }
+                    successfulArmCollisionDic[frame][position] = armCollisionLog;
+                }
+                else
+                {
+                    if (!unsuccessfulArmCollisionDic.ContainsKey(frame))
+                    {
+                        unsuccessfulArmCollisionDic.Add(frame, new ArmCollisionLog[3]);
+                    }
+                    unsuccessfulArmCollisionDic[frame][position] = armCollisionLog;
+                }
+            }
+            else if (key.Contains("FightCollision"))
+            {
+                FightCollisionLog fightCollisionLog = ES3.Load<FightCollisionLog>(key, recording);
+                if (!fightCollisionLogs.ContainsKey(frame))
+                {
+                    fightCollisionLogs.Add(frame, new FightCollisionLog[3]);
+                }
+
+                string armBase = fightCollisionLog.armBase;
+                int position = 0;
+                if (armBase.Equals("ArmBase 1")) position = 0;
+                else if (armBase.Equals("ArmBase 2")) position = 1;
+                else position = 2;
+
+                fightCollisionLogs[frame][position] = fightCollisionLog;
+                if (fightCollisionLog.ExpectedCollisionType == fightCollisionLog.ReceiveCollisionType)
+                {
+                    if (!successfulFightCollisionDic.ContainsKey(frame))
+                    {
+                        successfulFightCollisionDic.Add(frame, new FightCollisionLog[3]);
+                    }
+                    successfulFightCollisionDic[frame][position] = fightCollisionLog;
+                }
+                else
+                {
+                    if (!unsuccessfulFightCollisionDic.ContainsKey(frame))
+                    {
+                        unsuccessfulFightCollisionDic.Add(frame, new FightCollisionLog[3]);
+                    }
+                    unsuccessfulFightCollisionDic[frame][position] = fightCollisionLog;
+                }
+            }
+            else if (key.Contains("HRLog"))
+            {
+                HRLog hrLog = ES3.Load<HRLog>(key, recording);
+                if (HRLogs.ContainsKey(frame))
+                {
+                    HRLogs.Remove(frame);
+                }
+                HRLogs.Add(frame, hrLog);
+            }
+            else
+            {
+                continue;
+            }
+        }
 
         attachedToBottom = "";
         attachedToTop = "";
@@ -309,12 +305,12 @@ public class LogDataManager : MonoBehaviour
         Debug.Log(replaySO.fileName + " loaded");
     }
 
-    public List<ArmLog> GetBottomArmLogs()   { return bottomArmLogs; }
+    public List<ArmLog> GetBottomArmLogs() { return bottomArmLogs; }
     public List<int> GetBottomArmHighlights() { return bottomArmHighlights; }
     public List<ArmLog> GetMiddleArmLogs() { return middleArmLogs; }
     public List<int> GetMiddleArmHighlights() { return middleArmHighlights; }
     public List<ArmLog> GetTopArmLogs() { return topArmLogs; }
-    public List <int> GetTopArmHighlights() { return topArmHighlights; }
+    public List<int> GetTopArmHighlights() { return topArmHighlights; }
 
     public List<TransformLog> GetHeadTransformLogs()
     {

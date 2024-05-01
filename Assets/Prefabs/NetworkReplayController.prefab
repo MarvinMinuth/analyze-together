@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 706955851187380670}
   - component: {fileID: 9038049421618861047}
-  - component: {fileID: 5480293677505090445}
-  - component: {fileID: 2909303460714846819}
+  - component: {fileID: 5307271972989670113}
+  - component: {fileID: 4739018300477911377}
   m_Layer: 0
   m_Name: NetworkReplayController
   m_TagString: Untagged
@@ -54,7 +54,7 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &5480293677505090445
+--- !u!114 &5307271972989670113
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -63,10 +63,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 8902338652416742574}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf2e7ea1c4d90e74a9f3a9385786cd6e, type: 3}
+  m_Script: {fileID: 11500000, guid: eb314c70ad4e4fd499f7677fa8cd44a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2909303460714846819
+  isInteractionInProgress:
+    m_InternalValue: 0
+  interactorId:
+    m_InternalValue: 0
+  isRecordingLoaded:
+    m_InternalValue: 0
+  visualFeedbackEnabled:
+    m_InternalValue: 0
+  audioFeedbackEnabled:
+    m_InternalValue: 0
+  hapticFeedbackEnabled:
+    m_InternalValue: 0
+--- !u!114 &4739018300477911377
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -75,6 +87,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8902338652416742574}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 195ebf866eb7a0b46be0a8009ff657f7, type: 3}
+  m_Script: {fileID: 11500000, guid: df5bf5634cf2bcf4a84825ca8fdbb92e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  replayDataPrefab: {fileID: 5090918849166065581, guid: 15be58687be5fee469542b65439fd06e, type: 3}
+  fightingScenePrefab: {fileID: 8491562986436003041, guid: b4be4913b7815e84f94dd20ecc7544ae, type: 3}
+  loadButton: {fileID: 0}

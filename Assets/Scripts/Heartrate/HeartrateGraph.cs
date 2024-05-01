@@ -1,7 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using ES3Internal;
-using TMPro;
 using UnityEngine;
 using System.Linq;
 using System;
@@ -18,14 +15,14 @@ public class HeartrateGraph : MonoBehaviour
     [SerializeField] private int maxHR = 200;
     [SerializeField] private GameObject heartrateBaselinePrefab;
     [SerializeField] private int baselineHeartrate = 80;
-    private RecordingManager recordingManager;
+    private ReplayController replayController;
     private RectTransform sliderRectTransform;
     private bool baselineSet = false;
     private bool timelineSet = false;
 
     void Start()
     {
-        recordingManager = RecordingManager.Instance;
+        replayController = ReplayController.Instance;
 
         timeline.OnTimelineLoaded += Timeline_OnTimelineLoaded;
         timeline.OnTimelineChanged += Timeline_OnTimelineChanged;
@@ -37,7 +34,7 @@ public class HeartrateGraph : MonoBehaviour
     private void Timeline_OnTimelineLoaded(object sender, System.EventArgs e)
     {
         timelineSet = true;
-        SetupHeartrateGraph(recordingManager.GetHRLog());
+        SetupHeartrateGraph(replayController.GetRecordingData().GetHRLogs());
     }
 
     private void Timeline_OnTimelineReset(object sender, System.EventArgs e)
@@ -53,7 +50,7 @@ public class HeartrateGraph : MonoBehaviour
             return;
         }
         DeleteGraph();
-        SetupHeartrateGraph(recordingManager.GetHRLog());
+        SetupHeartrateGraph(replayController.GetRecordingData().GetHRLogs());
     }
 
     public void SetupHeartrateGraph(Dictionary<int, HRLog> hrLogDic)
@@ -123,7 +120,7 @@ public class HeartrateGraph : MonoBehaviour
 
     public int FindClosestKey(int targetValue)
     {
-        Dictionary<int, HRLog> hrLog = recordingManager.GetHRLog();
+        Dictionary<int, HRLog> hrLog = replayController.GetRecordingData().GetHRLogs();
         // Verwende LINQ, um den Schlüssel zu finden, der dem gegebenen Wert am nächsten ist
         var closestKey = hrLog.Keys.OrderBy(key => Math.Abs(key - targetValue)) // Sortiere die Schlüssel nach ihrer Differenz zum Zielwert
                                    .First(); // Nimm den ersten, also den nächsten Schlüssel
