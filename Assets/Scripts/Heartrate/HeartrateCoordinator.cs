@@ -384,10 +384,7 @@ public class HeartrateCoordinator : NetworkBehaviour
     private void ChangeVisualFeedback()
     {
         VisualFeedbackActivated = !VisualFeedbackActivated;
-        if (FileLoaded)
-        {
-            visualFeedback.EndDim();
-        }
+        visualFeedback.EndDim();
         OnVisualFeedbackChanged?.Invoke(this, EventArgs.Empty);
     }
 
