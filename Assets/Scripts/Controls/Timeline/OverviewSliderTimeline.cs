@@ -135,33 +135,6 @@ public class OverviewSliderTimeline : TimelineNew
             activeFrame = (int)value;
             replayController.InitSetFrame(activeFrame);
         }
-
-        /*
-        int closestHighlight = minFrame;
-        if(shownHighlights.Count != 0) { closestHighlight = shownHighlights.OrderBy(x => Mathf.Abs((long)x - value)).First(); }
-
-
-        // �berpr�fe, ob ein Highlight in der N�he des neuen Werts existiert
-        if (Mathf.Abs(closestHighlight - value) <= highlightThreshold)
-        {
-            // Setze den Replay-Zeitpunkt auf den n�chsten Highlight-Wert
-            activeFrame = closestHighlight;
-            replayController.SetFrame(activeFrame);
-        }
-        else
-        {
-            // Bestimme die Differenz zwischen dem aktuellen Wert und dem neuen Wert
-            float valueDifference = Mathf.Abs(activeFrame - value);
-
-            // �berpr�fe, ob die Differenz gr��er als eine bestimmte Schwelle ist
-            if (valueDifference > threshold)
-            {
-                // Setze den Replay-Zeitpunkt auf den Wert des Timelines
-                activeFrame = (int)value;
-                replayController.SetFrame(activeFrame);
-            }
-        }
-        */
     }
 
 }

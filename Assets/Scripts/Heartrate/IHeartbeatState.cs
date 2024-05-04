@@ -21,7 +21,7 @@ public class LubState : IHeartbeatState
         {
             coordinator.audioFeedback.PlayLub();
         }
-        if (coordinator.VisualFeedbackActivated && coordinator.visualFeedback != null)
+        if (coordinator.VisualFeedbackActivated && coordinator.visualFeedback.IsInitialized)
         {
             coordinator.visualFeedback.Highlight();
         }
@@ -51,7 +51,7 @@ public class DubState : IHeartbeatState
         {
             coordinator.audioFeedback.PlayDub();
         }
-        if (coordinator.VisualFeedbackActivated && coordinator.visualFeedback != null)
+        if (coordinator.VisualFeedbackActivated && coordinator.visualFeedback.IsInitialized)
         {
             coordinator.visualFeedback.Dim();
         }
@@ -74,7 +74,7 @@ public class ShortPauseState : IHeartbeatState
     {
         startTime = Time.time;
 
-        if (coordinator.VisualFeedbackActivated && coordinator.visualFeedback != null)
+        if (coordinator.VisualFeedbackActivated && coordinator.visualFeedback.IsInitialized)
         {
             coordinator.visualFeedback.EndDim();
         }

@@ -116,37 +116,4 @@ public class RecordingManager : MonoBehaviour
         activeLogDataManager = null;
         recordingData = null;
     }
-
-    /* In HR-Manager �berf�hren
-    // Gib den HRLog zur�ck, der dem gegebenen Frame am n�chsten kommt
-    public int GetCurrentHeartRate()
-    {
-        if (!fileLoaded || isLoading)
-        {
-            return 0;
-        }
-        int nearestFrame = -1;
-        foreach (int key in hrLogDic.Keys)
-        {
-            // Wenn der Schl�ssel kleiner oder gleich dem gegebenen Frame ist
-            if (key <= frame)
-            {
-                // Aktualisiere den Wert von nearestFrame, wenn der Schl�ssel gr��er ist
-                if (key > nearestFrame)
-                {
-                    nearestFrame = key;
-                }
-            }
-        }
-
-        // Wenn nearestFrame aktualisiert wurde, gib den entsprechenden HRLog zur�ck
-        if (nearestFrame != -1)
-        {
-            return hrLogDic[nearestFrame].heartRate;
-        }
-
-        // Wenn kein passender HRLog gefunden wurde, gib null zur�ck
-        return 0;
-    }
-    */
 }

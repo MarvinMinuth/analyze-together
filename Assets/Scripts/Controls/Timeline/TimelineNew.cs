@@ -63,7 +63,7 @@ public class TimelineNew : MonoBehaviour
         ResetTimelineValues();
     }
 
-    private void ReplayController_OnReplayWindowSet(object sender, ReplayController.OnReplayWindowSetEventArgs e)
+    protected virtual void ReplayController_OnReplayWindowSet(object sender, ReplayController.OnReplayWindowSetEventArgs e)
     {
         SetMinAccessibleValue(e.minReplayWindowFrame);
         SetMaxAccessibleValue(e.maxReplayWindowFrame);

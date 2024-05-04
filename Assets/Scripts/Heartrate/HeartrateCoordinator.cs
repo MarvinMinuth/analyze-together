@@ -3,6 +3,7 @@ using UnityEngine.XR.Interaction.Toolkit;
 using TMPro;
 using System.Collections.Generic;
 using System;
+using System.Collections;
 using System.Linq;
 using Unity.Netcode;
 
@@ -37,11 +38,13 @@ public class AudioFeedback
     }
     public void PlayLub()
     {
+        if (audioSource == null) return;
         audioSource.clip = lubClip;
         audioSource.Play();
     }
     public void PlayDub()
     {
+        if (audioSource == null) return;
         audioSource.clip = dubClip;
         audioSource.Play();
     }
@@ -57,70 +60,71 @@ public class VisualFeedback
     private List<MeshRenderer> meshRenderers;
     private Dictionary<MeshRenderer, Material> objMaterials;
     private Dictionary<MeshRenderer, Color> objStartColors;
+
+    private List<Material> seenMaterials;
     public Color highlightColor = Color.white;
     public float highlightSpeed = 15f;
 
+    public bool IsInitialized { get; private set; }
+
     public void Initialize(List<MeshRenderer> renderers)
     {
+        seenMaterials = new List<Material>();
         meshRenderers = renderers;
         objMaterials = new Dictionary<MeshRenderer, Material>();
         objStartColors = new Dictionary<MeshRenderer, Color>();
 
         foreach (MeshRenderer renderer in renderers)
         {
-            objMaterials[renderer] = renderer.material;
+            objMaterials[renderer] = renderer.sharedMaterial;
             objStartColors[renderer] = objMaterials[renderer].GetColor("_EmissionColor");
         }
+
+        IsInitialized = true;
     }
 
     public void Highlight()
     {
-        List<Material> seenMaterials = new List<Material>();
+        if (!IsInitialized) { return; }
+        seenMaterials.Clear();
         foreach (MeshRenderer renderer in meshRenderers)
         {
-            if (objMaterials[renderer] != null)
+            Material mat = objMaterials[renderer];
+            if (mat != null && !seenMaterials.Contains(mat))
             {
-                if (!seenMaterials.Contains(objMaterials[renderer]))
-                {
-                    objMaterials[renderer].SetColor("_EmissionColor", Color.Lerp(objMaterials[renderer].GetColor("_EmissionColor"), highlightColor, highlightSpeed * Time.deltaTime));
-                    seenMaterials.Add(objMaterials[renderer]);
-                }
-
-
+                mat.SetColor("_EmissionColor", Color.Lerp(mat.GetColor("_EmissionColor"), highlightColor, highlightSpeed * Time.deltaTime));
+                seenMaterials.Add(mat);
             }
         }
     }
 
     public void Dim()
     {
+        if (!IsInitialized) { return; }
+        seenMaterials.Clear();
         foreach (MeshRenderer renderer in meshRenderers)
         {
-            List<Material> seenMaterials = new List<Material>();
-            if (objMaterials[renderer] != null)
+            Material mat = objMaterials[renderer];
+            if (mat != null && !seenMaterials.Contains(mat))
             {
-
-                if (!seenMaterials.Contains(objMaterials[renderer]))
-                {
-                    objMaterials[renderer].SetColor("_EmissionColor", Color.Lerp(objMaterials[renderer].GetColor("_EmissionColor"), objStartColors[renderer], highlightSpeed * Time.deltaTime));
-                    seenMaterials.Add(objMaterials[renderer]);
-                }
+                objMaterials[renderer].SetColor("_EmissionColor", Color.Lerp(objMaterials[renderer].GetColor("_EmissionColor"), objStartColors[renderer], highlightSpeed * Time.deltaTime));
+                seenMaterials.Add(objMaterials[renderer]);
             }
+
         }
     }
 
     public void EndDim()
     {
+        if (!IsInitialized) { return; }
+        seenMaterials.Clear();
         foreach (MeshRenderer renderer in meshRenderers)
         {
-            List<Material> seenMaterials = new List<Material>();
-            if (objMaterials[renderer] != null)
+            Material mat = objMaterials[renderer];
+            if (mat != null && !seenMaterials.Contains(mat))
             {
-
-                if (!seenMaterials.Contains(objMaterials[renderer]))
-                {
-                    objMaterials[renderer].SetColor("_EmissionColor", objStartColors[renderer]);
-                    seenMaterials.Add(objMaterials[renderer]);
-                }
+                objMaterials[renderer].SetColor("_EmissionColor", objStartColors[renderer]);
+                seenMaterials.Add(objMaterials[renderer]);
             }
         }
     }
@@ -207,28 +211,7 @@ public class HeartrateCoordinator : NetworkBehaviour
         heartrateFeedbackControlRpcs = HeartrateFeedbackControlRpcs.Instance;
         heartrateNetworkVariables = HeartrateNetworkVariables.Instance;
 
-        if (FighterCoordinator.Instance != null && FighterCoordinator.Instance.IsInitialized)
-        {
-            visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
-        }
-        else
-        {
-            if (FighterCoordinator.Instance == null)
-            {
-                NetworkServerSetup.Instance.OnServerSetupComplete += (sender, e) =>
-                {
-                    visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
-                };
-            }
-            else
-            {
-                FighterCoordinator.Instance.OnFighterInitialized += (sender, e) =>
-                {
-                    visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
-                };
-            }
-        }
-
+        InitializeVisualFeedback();
 
         replayController.OnReplayControllerLoaded += OnReplayControllerLoaded;
         replayController.OnReplayControllerUnload += OnReplayControllerUnload;
@@ -251,6 +234,21 @@ public class HeartrateCoordinator : NetworkBehaviour
         OnAudioFeedbackChanged?.Invoke(this, EventArgs.Empty);
         OnVisualFeedbackChanged?.Invoke(this, EventArgs.Empty);
         OnHapticFeedbackChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    IEnumerator WaitForFighterCoordinator()
+    {
+        while (FighterCoordinator.Instance == null || FighterCoordinator.Instance.GetVisualMeshRenderers() == null)
+        {
+            yield return null;
+        }
+
+        visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
+    }
+
+    private void InitializeVisualFeedback()
+    {
+        StartCoroutine(WaitForFighterCoordinator());
     }
 
     private void AudioFeedbackActivated_OnValueChanged(bool previousValue, bool newValue)
@@ -279,7 +277,9 @@ public class HeartrateCoordinator : NetworkBehaviour
     public void OnReplayControllerLoaded(object sender, System.EventArgs e)
     {
         hrLogDic = ReplayController.Instance.GetRecordingData().GetHRLogs();
-        visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
+
+        WaitForFighterCoordinator();
+        InitializeVisualFeedback();
         SetState(new IdleHeartbeatState());
         FileLoaded = true;
     }
@@ -384,7 +384,10 @@ public class HeartrateCoordinator : NetworkBehaviour
     private void ChangeVisualFeedback()
     {
         VisualFeedbackActivated = !VisualFeedbackActivated;
-        visualFeedback.EndDim();
+        if (FileLoaded)
+        {
+            visualFeedback.EndDim();
+        }
         OnVisualFeedbackChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -412,42 +415,45 @@ public class HeartrateCoordinator : NetworkBehaviour
         {
             return 0;
         }
+
         int nearestFrame = -1;
-        foreach (int key in hrLogDic.Keys)
+        int activeFrame = replayController.GetActiveFrame();
+        int smallestDifference = int.MaxValue;
+
+        // Durchlaufe das Dictionary, um den nächsten Schlüssel zu finden
+        foreach (var entry in hrLogDic)
         {
-            // Wenn der Schl�ssel kleiner oder gleich dem gegebenen Frame ist
-            if (key <= replayController.GetActiveFrame())
+            int currentDifference = Math.Abs(entry.Key - activeFrame);
+            if (currentDifference < smallestDifference)
             {
-                // Aktualisiere den Wert von nearestFrame, wenn der Schl�ssel gr��er ist
-                if (key > nearestFrame)
-                {
-                    nearestFrame = key;
-                }
+                smallestDifference = currentDifference;
+                nearestFrame = entry.Key;
             }
         }
 
-        // Wenn nearestFrame aktualisiert wurde, gib den entsprechenden HRLog zur�ck
-        if (nearestFrame != -1)
+        // Überprüfe, ob ein nächster Frame gefunden wurde
+        if (nearestFrame != -1 && hrLogDic.TryGetValue(nearestFrame, out HRLog log))
         {
-            return hrLogDic[nearestFrame].heartRate;
+            return log.heartRate;
         }
 
-        // Wenn kein passender HRLog gefunden wurde, gib null zur�ck
-        return hrLogDic[FindClosestKey(replayController.GetActiveFrame())].heartRate;
-    }
-
-    public int FindClosestKey(int targetValue)
-    {
-        Dictionary<int, HRLog> hrLog = replayController.GetRecordingData().GetHRLogs();
-        // Verwende LINQ, um den Schlüssel zu finden, der dem gegebenen Wert am nächsten ist
-        var closestKey = hrLog.Keys.OrderBy(key => Math.Abs(key - targetValue)) // Sortiere die Schlüssel nach ihrer Differenz zum Zielwert
-                                   .First(); // Nimm den ersten, also den nächsten Schlüssel
-
-        return closestKey;
+        // Wenn kein passender HRLog gefunden wurde, gebe 0 zurück
+        return 0;
     }
 
     public bool IsFeedbackSynced()
     {
         return syncedFeedback;
+    }
+
+    private void OnDisable()
+    {
+        if (replayController != null)
+        {
+            replayController.OnReplayControllerLoaded -= OnReplayControllerLoaded;
+            replayController.OnReplayControllerUnload -= OnReplayControllerUnload;
+        }
+
+        StopCoroutine(WaitForFighterCoordinator());
     }
 }

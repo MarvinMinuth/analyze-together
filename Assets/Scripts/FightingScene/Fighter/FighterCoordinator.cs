@@ -10,6 +10,14 @@ public class FighterCoordinator : NetworkBehaviour
     public static FighterCoordinator Instance { get; private set; }
 
     public event EventHandler OnFighterInitialized;
+    public event EventHandler OnHeadHidden;
+    public event EventHandler OnHeadShown;
+    public event EventHandler OnLeftHandHidden;
+    public event EventHandler OnLeftHandShown;
+    public event EventHandler OnRightHandHidden;
+    public event EventHandler OnRightHandShown;
+    public event EventHandler OnBodyHidden;
+    public event EventHandler OnBodyShown;
     private ReplayController replayController;
 
     [SerializeField] private Material idleMaterial;
@@ -17,6 +25,9 @@ public class FighterCoordinator : NetworkBehaviour
 
     [SerializeField] private FighterVisuals fighterVisuals;
     [SerializeField] private Transform headTransform, leftHandTransform, rightHandTransform;
+    [SerializeField] private Trajectories headTrajectories, leftHandTrajectories, rightHandTrajectories;
+    private bool headShown, leftHandShown, rightHandShown, bodyShown;
+    private LoadingStatueSO loadingStatueSO;
     private bool fighterMovementEnabled = true;
 
     private List<TransformLog> headTransformLogs;
@@ -115,7 +126,7 @@ public class FighterCoordinator : NetworkBehaviour
     }
     */
 
-    /*
+
     public void SetHeadTransparent()
     {
         headShown = false;
@@ -180,7 +191,6 @@ public class FighterCoordinator : NetworkBehaviour
 
         OnBodyShown?.Invoke(this, EventArgs.Empty);
     }
-    */
 
 
     /*
@@ -211,7 +221,7 @@ public class FighterCoordinator : NetworkBehaviour
         fighterMovementEnabled = enable;
     }
 
-    /*
+
     public bool IsHeadShown()
     {
         return headShown;
@@ -228,5 +238,5 @@ public class FighterCoordinator : NetworkBehaviour
     {
         return bodyShown;
     }
-    */
+
 }
