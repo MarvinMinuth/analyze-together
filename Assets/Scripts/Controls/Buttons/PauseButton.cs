@@ -7,6 +7,8 @@ public class PauseButton : MonoBehaviour
 
     private ReplayController replayController;
 
+    private InteractionCoordinator interactionCoordinator;
+
     private void Start()
     {
         replayController = ReplayController.Instance;
@@ -25,6 +27,9 @@ public class PauseButton : MonoBehaviour
         replayController.OnReplayControllerUnload += OnPause;
 
         button.onClick.AddListener(replayController.InitPause);
+
+        interactionCoordinator = InteractionCoordinator.Instance;
+        interactionCoordinator.isInteractionInProgress.OnValueChanged += OnInteractionInProgressChanged;
     }
 
     private void OnPause(object sender, System.EventArgs e)
@@ -45,5 +50,10 @@ public class PauseButton : MonoBehaviour
     public void SetButtonInactive()
     {
         button.GetComponent<Image>().color = Color.white;
+    }
+
+    private void OnInteractionInProgressChanged(bool previous, bool current)
+    {
+        button.interactable = !current;
     }
 }

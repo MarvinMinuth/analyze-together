@@ -7,6 +7,8 @@ public class BackwardsButton : MonoBehaviour
 
     private ReplayController replayController;
 
+    private InteractionCoordinator interactionCoordinator;
+
     private void Start()
     {
         replayController = ReplayController.Instance;
@@ -23,6 +25,14 @@ public class BackwardsButton : MonoBehaviour
         replayController.OnDirectionChanged += OnReplayDirectionChanged;
 
         button.onClick.AddListener(replayController.InitChangeDirection);
+
+        interactionCoordinator = InteractionCoordinator.Instance;
+        interactionCoordinator.isInteractionInProgress.OnValueChanged += OnInteractionInProgressChanged;
+    }
+
+    private void OnInteractionInProgressChanged(bool previous, bool current)
+    {
+        button.interactable = !current;
     }
 
     private void OnReplayDirectionChanged(object sender, ReplayController.OnDirectionChangedEventArgs e)

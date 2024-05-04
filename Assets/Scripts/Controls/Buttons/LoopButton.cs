@@ -7,6 +7,8 @@ public class LoopButton : MonoBehaviour
 
     private ReplayController replayController;
 
+    private InteractionCoordinator interactionCoordinator;
+
     private void Start()
     {
         replayController = ReplayController.Instance;
@@ -23,6 +25,14 @@ public class LoopButton : MonoBehaviour
         replayController.OnRepeat += OnRepeat;
 
         button.onClick.AddListener(replayController.InitChangeLooping);
+
+        interactionCoordinator = InteractionCoordinator.Instance;
+        interactionCoordinator.isInteractionInProgress.OnValueChanged += OnInteractionInProgressChanged;
+    }
+
+    private void OnInteractionInProgressChanged(bool previous, bool current)
+    {
+        button.interactable = !current;
     }
 
     private void OnRepeat(object sender, System.EventArgs e)

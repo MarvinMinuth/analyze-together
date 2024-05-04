@@ -59,10 +59,9 @@ public class VisualFeedback
 {
     private List<MeshRenderer> meshRenderers;
     private Dictionary<MeshRenderer, Material> objMaterials;
-    private Dictionary<MeshRenderer, Color> objStartColors;
-
     private List<Material> seenMaterials;
     public Color highlightColor = Color.white;
+    public Color startColor = Color.black;
     public float highlightSpeed = 15f;
 
     public bool IsInitialized { get; private set; }
@@ -72,12 +71,10 @@ public class VisualFeedback
         seenMaterials = new List<Material>();
         meshRenderers = renderers;
         objMaterials = new Dictionary<MeshRenderer, Material>();
-        objStartColors = new Dictionary<MeshRenderer, Color>();
 
         foreach (MeshRenderer renderer in renderers)
         {
             objMaterials[renderer] = renderer.sharedMaterial;
-            objStartColors[renderer] = objMaterials[renderer].GetColor("_EmissionColor");
         }
 
         IsInitialized = true;
@@ -107,7 +104,7 @@ public class VisualFeedback
             Material mat = objMaterials[renderer];
             if (mat != null && !seenMaterials.Contains(mat))
             {
-                objMaterials[renderer].SetColor("_EmissionColor", Color.Lerp(objMaterials[renderer].GetColor("_EmissionColor"), objStartColors[renderer], highlightSpeed * Time.deltaTime));
+                objMaterials[renderer].SetColor("_EmissionColor", Color.Lerp(objMaterials[renderer].GetColor("_EmissionColor"), startColor, highlightSpeed * Time.deltaTime));
                 seenMaterials.Add(objMaterials[renderer]);
             }
 
@@ -123,7 +120,7 @@ public class VisualFeedback
             Material mat = objMaterials[renderer];
             if (mat != null && !seenMaterials.Contains(mat))
             {
-                objMaterials[renderer].SetColor("_EmissionColor", objStartColors[renderer]);
+                objMaterials[renderer].SetColor("_EmissionColor", startColor);
                 seenMaterials.Add(objMaterials[renderer]);
             }
         }
@@ -133,7 +130,6 @@ public class VisualFeedback
     {
         meshRenderers = null;
         objMaterials = null;
-        objStartColors = null;
     }
 }
 
@@ -148,7 +144,7 @@ public class HeartrateCoordinator : NetworkBehaviour
     public event EventHandler OnHapticFeedbackChanged;
     public event EventHandler OnUpdateState;
 
-    [SerializeField] private TMP_Text heartrateDisplay;
+    [SerializeField] private List<TMP_Text> heartrateDisplays;
 
     private float newBPM = 0f;
     private float lastBPM = 0f;
@@ -290,8 +286,16 @@ public class HeartrateCoordinator : NetworkBehaviour
         SetState(new WaitingHeartbeatState());
         visualFeedback.End();
         newBPM = lastBPM = 0;
-        heartrateDisplay.text = "0";
+        ChangeHeartrateDisplayTexts("0");
         hrLogDic = null;
+    }
+
+    private void ChangeHeartrateDisplayTexts(string text)
+    {
+        foreach (TMP_Text display in heartrateDisplays)
+        {
+            display.text = text;
+        }
     }
 
     public void SetState(IHeartbeatState newState)
@@ -313,7 +317,7 @@ public class HeartrateCoordinator : NetworkBehaviour
         HapticFeedbackActivated = useHapticFeedback;
         SetState(new WaitingHeartbeatState());
         newBPM = lastBPM = 0;
-        heartrateDisplay.text = "0";
+        ChangeHeartrateDisplayTexts("0");
     }
 
     private void Update()
@@ -329,7 +333,7 @@ public class HeartrateCoordinator : NetworkBehaviour
     {
         newBPM = GetCurrentHeartRate();
         if (newBPM < 0f) { return; }
-        heartrateDisplay.text = newBPM.ToString();
+        ChangeHeartrateDisplayTexts(newBPM.ToString());
 
         if (newBPM == 0f) { return; }
 
