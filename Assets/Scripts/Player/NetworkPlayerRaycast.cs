@@ -1,12 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using UnityEditor;
 using UnityEngine;
 
 public class NetworkPlayerRaycast : NetworkBehaviour
 {
+    [SerializeField] private bool syncLeftRaycast = true;
     [SerializeField] private LineRenderer leftHandRaycast;
+
+    [SerializeField] private bool syncRightRaycast = true;
     [SerializeField] private LineRenderer rightHandRaycast;
+
+    [SerializeField] private bool syncTeleportRaycast = false;
+    [SerializeField] private LineRenderer teleportRaycast;
 
     public NetworkVariable<Vector3ArrayNetworkSerializable> leftRayPositions =
      new NetworkVariable<Vector3ArrayNetworkSerializable>(new Vector3ArrayNetworkSerializable());
@@ -14,32 +21,83 @@ public class NetworkPlayerRaycast : NetworkBehaviour
     public NetworkVariable<Vector3ArrayNetworkSerializable> rightRayPositions =
     new NetworkVariable<Vector3ArrayNetworkSerializable>(new Vector3ArrayNetworkSerializable());
 
+    public NetworkVariable<Vector3ArrayNetworkSerializable> teleportRayPositions =
+    new NetworkVariable<Vector3ArrayNetworkSerializable>(new Vector3ArrayNetworkSerializable());
+
     public NetworkVariable<bool> leftRaycastEnabled = new NetworkVariable<bool>(false);
     public NetworkVariable<bool> rightRaycastEnabled = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> teleportRaycastEnabled = new NetworkVariable<bool>(false);
 
     public override void OnNetworkSpawn()
     {
         if (!IsOwner)
         {
-            leftRayPositions.OnValueChanged += UpdateLeftRaycastPositions;
-            rightRayPositions.OnValueChanged += UpdateRightRaycastPositions;
+            if (syncLeftRaycast)
+            {
+                leftRayPositions.OnValueChanged += UpdateLeftRaycastPositions;
+                leftRaycastEnabled.OnValueChanged += UpdateLeftRaycastEnabled;
+                leftHandRaycast.positionCount = leftRayPositions.Value.GetPositions().Length;
+                leftHandRaycast.SetPositions(leftRayPositions.Value.GetPositions());
 
-            leftRaycastEnabled.OnValueChanged += UpdateLeftRaycastEnabled;
-            rightRaycastEnabled.OnValueChanged += UpdateRightRaycastEnabled;
+                leftHandRaycast.enabled = leftRaycastEnabled.Value;
+            }
 
-            leftHandRaycast.positionCount = leftRayPositions.Value.GetPositions().Length;
-            leftHandRaycast.SetPositions(leftRayPositions.Value.GetPositions());
+            if (syncRightRaycast)
+            {
+                rightRayPositions.OnValueChanged += UpdateRightRaycastPositions;
+                rightRaycastEnabled.OnValueChanged += UpdateRightRaycastEnabled;
+                rightHandRaycast.positionCount = rightRayPositions.Value.GetPositions().Length;
+                rightHandRaycast.SetPositions(rightRayPositions.Value.GetPositions());
 
-            rightHandRaycast.positionCount = rightRayPositions.Value.GetPositions().Length;
-            rightHandRaycast.SetPositions(rightRayPositions.Value.GetPositions());
+                rightHandRaycast.enabled = rightRaycastEnabled.Value;
+            }
 
-            leftHandRaycast.enabled = leftRaycastEnabled.Value;
-            rightHandRaycast.enabled = rightRaycastEnabled.Value;
+            if (syncTeleportRaycast)
+            {
+                teleportRayPositions.OnValueChanged += UpdateTeleportRaycastPositions;
+                teleportRaycastEnabled.OnValueChanged += UpdateTeleportRaycastEnabled;
+                teleportRaycast.positionCount = teleportRayPositions.Value.GetPositions().Length;
+                teleportRaycast.SetPositions(teleportRayPositions.Value.GetPositions());
+
+                teleportRaycast.enabled = teleportRaycastEnabled.Value;
+            }
         }
         else
         {
-            leftHandRaycast.enabled = false;
-            rightHandRaycast.enabled = false;
+            if (syncLeftRaycast)
+            {
+                leftHandRaycast.enabled = RaycastReferences.Instance.leftHandRaycast.enabled;
+            }
+            else
+            {
+                leftHandRaycast.enabled = false;
+            }
+
+            if (syncRightRaycast)
+            {
+                rightHandRaycast.enabled = RaycastReferences.Instance.rightHandRaycast.enabled;
+            }
+            else
+            {
+                rightHandRaycast.enabled = false;
+            }
+
+            if (syncTeleportRaycast)
+            {
+                teleportRaycast.enabled = RaycastReferences.Instance.teleportRaycast.enabled;
+            }
+            else
+            {
+                teleportRaycast.enabled = false;
+            }
+        }
+    }
+
+    private void UpdateTeleportRaycastEnabled(bool previousValue, bool newValue)
+    {
+        if (teleportRaycast != null && !IsOwner)
+        {
+            teleportRaycast.enabled = newValue;
         }
     }
 
@@ -56,6 +114,15 @@ public class NetworkPlayerRaycast : NetworkBehaviour
         if (rightHandRaycast != null && !IsOwner)
         {
             rightHandRaycast.enabled = newValue;
+        }
+    }
+
+    private void UpdateTeleportRaycastPositions(Vector3ArrayNetworkSerializable previousPositions, Vector3ArrayNetworkSerializable newPositions)
+    {
+        if (teleportRaycast != null && !IsOwner)
+        {
+            teleportRaycast.positionCount = teleportRayPositions.Value.GetPositions().Length;
+            teleportRaycast.SetPositions(teleportRayPositions.Value.GetPositions());
         }
     }
 
@@ -91,64 +158,102 @@ public class NetworkPlayerRaycast : NetworkBehaviour
 
     private void Raycast()
     {
-        LineRenderer leftHandRaycastReference = RaycastReferences.Instance.leftHandRaycast;
-
-        if (IsServer)
+        if (syncLeftRaycast)
         {
-            leftRaycastEnabled.Value = leftHandRaycastReference.enabled;
-        }
-        else
-        {
-            SetLeftRaycastEnabledServerRpc(leftHandRaycastReference.enabled);
-        }
-
-        if (leftHandRaycastReference.enabled)
-        {
-            Vector3[] leftHandRaycastPositions = new Vector3[leftHandRaycastReference.positionCount];
-            int positionCount = leftHandRaycastReference.GetPositions(leftHandRaycastPositions);
-
-            Vector3ArrayNetworkSerializable leftHandRaycastPositionsSerializable = new Vector3ArrayNetworkSerializable();
-            leftHandRaycastPositionsSerializable.Initialize(positionCount);
-            leftHandRaycastPositionsSerializable.SetPositions(leftHandRaycastPositions);
+            LineRenderer leftHandRaycastReference = RaycastReferences.Instance.leftHandRaycast;
 
             if (IsServer)
             {
-                leftRayPositions.Value = leftHandRaycastPositionsSerializable;
+                leftRaycastEnabled.Value = leftHandRaycastReference.enabled;
             }
             else
             {
-                SetLeftRayPositionsServerRpc(leftHandRaycastPositionsSerializable);
+                SetLeftRaycastEnabledServerRpc(leftHandRaycastReference.enabled);
+            }
+
+            if (leftHandRaycastReference.enabled)
+            {
+                Vector3[] leftHandRaycastPositions = new Vector3[leftHandRaycastReference.positionCount];
+                int positionCount = leftHandRaycastReference.GetPositions(leftHandRaycastPositions);
+
+                Vector3ArrayNetworkSerializable leftHandRaycastPositionsSerializable = new Vector3ArrayNetworkSerializable();
+                leftHandRaycastPositionsSerializable.Initialize(positionCount);
+                leftHandRaycastPositionsSerializable.SetPositions(leftHandRaycastPositions);
+
+                if (IsServer)
+                {
+                    leftRayPositions.Value = leftHandRaycastPositionsSerializable;
+                }
+                else
+                {
+                    SetLeftRayPositionsServerRpc(leftHandRaycastPositionsSerializable);
+                }
             }
         }
 
-
-        LineRenderer rightHandRaycastReference = RaycastReferences.Instance.rightHandRaycast;
-
-        if (IsServer)
+        if (syncRightRaycast)
         {
-            rightRaycastEnabled.Value = rightHandRaycastReference.enabled;
-        }
-        else
-        {
-            SetRightRaycastEnabledServerRpc(rightHandRaycastReference.enabled);
-        }
-
-        if (rightHandRaycastReference.enabled)
-        {
-            Vector3[] rightHandRaycastPositions = new Vector3[rightHandRaycastReference.positionCount];
-            int positionCount = rightHandRaycastReference.GetPositions(rightHandRaycastPositions);
-
-            Vector3ArrayNetworkSerializable rightHandRaycastPositionsSerializable = new Vector3ArrayNetworkSerializable();
-            rightHandRaycastPositionsSerializable.Initialize(positionCount);
-            rightHandRaycastPositionsSerializable.SetPositions(rightHandRaycastPositions);
+            LineRenderer rightHandRaycastReference = RaycastReferences.Instance.rightHandRaycast;
 
             if (IsServer)
             {
-                rightRayPositions.Value = rightHandRaycastPositionsSerializable;
+                rightRaycastEnabled.Value = rightHandRaycastReference.enabled;
             }
             else
             {
-                SetRightRayPositionsServerRpc(rightHandRaycastPositionsSerializable);
+                SetRightRaycastEnabledServerRpc(rightHandRaycastReference.enabled);
+            }
+
+            if (rightHandRaycastReference.enabled)
+            {
+                Vector3[] rightHandRaycastPositions = new Vector3[rightHandRaycastReference.positionCount];
+                int positionCount = rightHandRaycastReference.GetPositions(rightHandRaycastPositions);
+
+                Vector3ArrayNetworkSerializable rightHandRaycastPositionsSerializable = new Vector3ArrayNetworkSerializable();
+                rightHandRaycastPositionsSerializable.Initialize(positionCount);
+                rightHandRaycastPositionsSerializable.SetPositions(rightHandRaycastPositions);
+
+                if (IsServer)
+                {
+                    rightRayPositions.Value = rightHandRaycastPositionsSerializable;
+                }
+                else
+                {
+                    SetRightRayPositionsServerRpc(rightHandRaycastPositionsSerializable);
+                }
+            }
+        }
+
+        if (syncTeleportRaycast)
+        {
+            LineRenderer teleportRaycastReference = RaycastReferences.Instance.teleportRaycast;
+
+            if (IsServer)
+            {
+                teleportRaycastEnabled.Value = teleportRaycastReference.enabled;
+            }
+            else
+            {
+                SetTeleportRaycastEnabledServerRpc(teleportRaycastReference.enabled);
+            }
+
+            if (teleportRaycastReference.enabled)
+            {
+                Vector3[] teleportRaycastPositions = new Vector3[teleportRaycastReference.positionCount];
+                int positionCount = teleportRaycastReference.GetPositions(teleportRaycastPositions);
+
+                Vector3ArrayNetworkSerializable teleportRaycastPositionsSerializable = new Vector3ArrayNetworkSerializable();
+                teleportRaycastPositionsSerializable.Initialize(positionCount);
+                teleportRaycastPositionsSerializable.SetPositions(teleportRaycastPositions);
+
+                if (IsServer)
+                {
+                    teleportRayPositions.Value = teleportRaycastPositionsSerializable;
+                }
+                else
+                {
+                    SetTeleportRayPositionsServerRpc(teleportRaycastPositionsSerializable);
+                }
             }
         }
     }
@@ -176,4 +281,17 @@ public class NetworkPlayerRaycast : NetworkBehaviour
     {
         this.rightRaycastEnabled.Value = rightRaycastEnabled;
     }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetTeleportRayPositionsServerRpc(Vector3ArrayNetworkSerializable teleportRaycastPositionsSerializable)
+    {
+        teleportRayPositions.Value = teleportRaycastPositionsSerializable;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetTeleportRaycastEnabledServerRpc(bool teleportRaycastEnabled)
+    {
+        this.teleportRaycastEnabled.Value = teleportRaycastEnabled;
+    }
+
 }

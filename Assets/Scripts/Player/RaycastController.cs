@@ -2,10 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 public class RaycastController : MonoBehaviour
 {
     public GameObject leftRayInteractor, rightRayInteractor;
+    [SerializeField] private RaycastListener rightRaycastListener;
+    [SerializeField] private ActionBasedControllerManager teleportControllerManager;
+    [SerializeField] private ActionBasedSnapTurnProvider snapTurnProvider;
     public InputActionReference leftActionReference, rightActionReference;
     public List<InputActionReference> leftBlockingActions, rightBlockingActions;
 
@@ -31,6 +36,18 @@ public class RaycastController : MonoBehaviour
 
         leftRayInteractor.SetActive(false);
         rightRayInteractor.SetActive(false);
+
+        rightRaycastListener.OnRaycastEnabled += OnRightRaycastEnabled;
+    }
+
+    private void OnTeleport(InputAction.CallbackContext context)
+    {
+        Debug.Log(context.action.name + " was triggered");
+    }
+
+    private void OnRightRaycastEnabled(object sender, System.EventArgs e)
+    {
+        if (!rightRayActive) { rightRayInteractor.SetActive(false); }
     }
 
     public void LeftRayInteracting(InputAction.CallbackContext context)
@@ -49,11 +66,15 @@ public class RaycastController : MonoBehaviour
     {
         if (context.performed)
         {
+            teleportControllerManager.enabled = false;
+            snapTurnProvider.enabled = false;
             rightRayInteracting = true;
         }
         else
         {
             rightRayInteracting = false;
+            snapTurnProvider.enabled = true;
+            teleportControllerManager.enabled = true;
         }
     }
 

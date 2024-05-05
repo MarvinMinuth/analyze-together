@@ -21,14 +21,13 @@ public class Vector3ArrayNetworkSerializable : INetworkSerializable
     {
         int length = positions.Length;
         serializer.SerializeValue(ref length);
-        if (serializer.IsReader)
+        if (serializer.IsWriter)
         {
-            positions = new Vector3[length];
+            serializer.SerializeValue(ref positions);
         }
-
-        for (int i = 0; i < length; i++)
+        else
         {
-            serializer.SerializeValue(ref positions[i]);
+            serializer.GetFastBufferReader().ReadValueSafe(out positions);
         }
     }
 

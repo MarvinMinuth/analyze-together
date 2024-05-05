@@ -9,6 +9,8 @@ public class RaycastReferences : MonoBehaviour
     public LineRenderer leftHandRaycast;
     public LineRenderer rightHandRaycast;
 
+    public LineRenderer teleportRaycast;
+
     private void Awake()
     {
         Instance = this;
