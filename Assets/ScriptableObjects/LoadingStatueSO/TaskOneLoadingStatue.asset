@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3fb3c0e462d69f438ede81a7ff00217, type: 3}
+  m_Name: TaskOneLoadingStatue
+  m_EditorClassIdentifier: 
+  statuePrefab: {fileID: 3297691950751094700, guid: 7cc4d032e2781924783787a81b9c6531, type: 3}
+  material: {fileID: 2100000, guid: 9926d18699c6112479d0f9403ba810ba, type: 2}
+  transparentMaterial: {fileID: 2100000, guid: a4725c187e0aca048a6570dc386490cd, type: 2}
+  hmdMaterial: {fileID: 2100000, guid: 8a02ca49e47b44d4d9439382421d208f, type: 2}
+  saveFile: 2
+  messageText: "\"W\xE4hrend der \xDCbung bin ich gestolpert und hingefallen.\""

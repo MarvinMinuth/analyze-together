@@ -239,7 +239,14 @@ public class HeartrateCoordinator : NetworkBehaviour
             yield return null;
         }
 
+        FighterCoordinator.Instance.OnFighterInPosition += OnFighterInPosition;
+
+    }
+
+    private void OnFighterInPosition(object sender, EventArgs e)
+    {
         visualFeedback.Initialize(FighterCoordinator.Instance.GetVisualMeshRenderers());
+        FileLoaded = true;
     }
 
     private void InitializeVisualFeedback()
@@ -277,7 +284,7 @@ public class HeartrateCoordinator : NetworkBehaviour
         WaitForFighterCoordinator();
         InitializeVisualFeedback();
         SetState(new IdleHeartbeatState());
-        FileLoaded = true;
+        //FileLoaded = true;
     }
 
     public void OnReplayControllerUnload(object sender, System.EventArgs e)

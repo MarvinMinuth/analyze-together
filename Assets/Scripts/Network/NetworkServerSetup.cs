@@ -20,6 +20,8 @@ public class NetworkServerSetup : NetworkBehaviour
 
     public event EventHandler OnServerSetupComplete;
 
+    public bool ServerIsSetup { get; private set; } = false;
+
     private void Awake()
     {
         if (Instance == null)
@@ -42,6 +44,7 @@ public class NetworkServerSetup : NetworkBehaviour
 
             loadButton.Setup();
 
+            ServerIsSetup = true;
             OnServerSetupComplete?.Invoke(this, EventArgs.Empty);
         }
     }

@@ -13,7 +13,7 @@ public class FighterLoadingStatue : MonoBehaviour
     [SerializeField] private LoadingStatueCube loadingStatueCube;
 
     private FighterLoader fighterLoader;
-    private XRSimpleInteractable interactable;
+    [SerializeField] private XRSimpleInteractable interactable;
 
     private void Start()
     {
@@ -22,13 +22,11 @@ public class FighterLoadingStatue : MonoBehaviour
         {
             Debug.LogError("No FighterLoader found!");
         }
-
-        interactable = transform.GetComponent<XRSimpleInteractable>();
     }
 
     public void ClickStatue()
     {
-        //fighterLoader.ShowMessage(this);
+        fighterLoader.ShowMessage(this);
     }
 
     public void HideStatue()
@@ -47,7 +45,7 @@ public class FighterLoadingStatue : MonoBehaviour
     }
     public void LoadReplay()
     {
-        //fighterLoader.LoadReplay(loadingStatueSO.saveFile);
+        fighterLoader.LoadReplay(loadingStatueSO.saveFile);
         DisableInteractable();
     }
 

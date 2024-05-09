@@ -8,6 +8,7 @@ using UnityEngine.Animations;
 public class FighterCoordinator : NetworkBehaviour
 {
     public static FighterCoordinator Instance { get; private set; }
+    public event EventHandler OnFighterInPosition;
 
     public event EventHandler OnFighterInitialized;
     public event EventHandler OnHeadHidden;
@@ -27,6 +28,7 @@ public class FighterCoordinator : NetworkBehaviour
     [SerializeField] private Transform headTransform, leftHandTransform, rightHandTransform;
     [SerializeField] private Trajectories headTrajectories, leftHandTrajectories, rightHandTrajectories;
     private bool headShown, leftHandShown, rightHandShown, bodyShown;
+    [SerializeField] private LoadingStatueSO taskOneLoadingStatueSO, tutorialLoadingStatueSO, taskTwoLoadingStatueSO, taskthreeLoadingStatueSO;
     private LoadingStatueSO loadingStatueSO;
     private bool fighterMovementEnabled = true;
 
@@ -36,7 +38,7 @@ public class FighterCoordinator : NetworkBehaviour
 
     [SerializeField] private Transform offsetTransform;
     [SerializeField] private Transform fightingSceneTransform;
-    private Vector3 offset;
+    public Vector3 offset;
 
     public bool IsInitialized { get; private set; } = false;
 
@@ -61,7 +63,7 @@ public class FighterCoordinator : NetworkBehaviour
             replayController.OnActiveFrameChanged += ReplayController_OnFrameChanged;
             replayController.OnReplayControllerUnload += ReplayController_OnReplayControllerUnload;
 
-            //FighterLoader.Instance.OnFighterInPosition += FighterLoader_OnFighterInPosition;
+            FighterLoader.Instance.OnFighterInPosition += FighterLoader_OnFighterInPosition;
             fighterVisuals.Hide();
 
             IsInitialized = true;
@@ -105,7 +107,23 @@ public class FighterCoordinator : NetworkBehaviour
         leftHandTransformLogs = replayController.GetRecordingData().GetLeftHandTransformLogs();
         rightHandTransformLogs = replayController.GetRecordingData().GetRightHandTransformLogs();
 
-        fighterVisuals.Show();
+        switch (replayController.GetRecordingData().GetSaveFile())
+        {
+            case SaveFile.TaskOne:
+                loadingStatueSO = taskOneLoadingStatueSO;
+                break;
+            case SaveFile.TaskTwo:
+                loadingStatueSO = taskTwoLoadingStatueSO;
+                break;
+            case SaveFile.Tutorial:
+                loadingStatueSO = tutorialLoadingStatueSO;
+                break;
+            case SaveFile.TaskThree:
+                loadingStatueSO = taskthreeLoadingStatueSO;
+                break;
+        }
+
+        //fighterVisuals.Show();
 
     }
 
@@ -114,7 +132,7 @@ public class FighterCoordinator : NetworkBehaviour
         return fighterVisuals.GetAllMeshRenderers();
     }
 
-    /*
+
     private void FighterLoader_OnFighterInPosition(object sender, EventArgs e)
     {
         ShowHead();
@@ -122,9 +140,11 @@ public class FighterCoordinator : NetworkBehaviour
         ShowRightHand();
         ShowBody();
         fighterVisuals.Show();
-        //fighterVisuals.ChangeMaterial(loadingStatueSO.material, false);
+        fighterVisuals.ChangeMaterial(loadingStatueSO.material, false);
+
+        OnFighterInPosition?.Invoke(this, EventArgs.Empty);
     }
-    */
+
 
 
     public void SetHeadTransparent()

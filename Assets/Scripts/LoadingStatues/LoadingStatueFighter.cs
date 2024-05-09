@@ -40,9 +40,9 @@ public class LoadingStatueFighter : MonoBehaviour
     {
         float timeElapsed = 0;
 
-        //Vector3 headTargetRotation = ReplayManager.Instance.GetHeadTransformLogs()[0].Rotation;
-        //Vector3 leftHandTargetRotation = ReplayManager.Instance.GetLeftHandTransformLogs()[0].Rotation;
-        //Vector3 rightHandTargetRotation = ReplayManager.Instance.GetRightHandTransformLogs()[0].Rotation;
+        Vector3 headTargetRotation = ReplayController.Instance.GetRecordingData().GetHeadTransformLogs()[0].Rotation;
+        Vector3 leftHandTargetRotation = ReplayController.Instance.GetRecordingData().GetLeftHandTransformLogs()[0].Rotation;
+        Vector3 rightHandTargetRotation = ReplayController.Instance.GetRecordingData().GetRightHandTransformLogs()[0].Rotation;
 
         Vector3 currentHeadPosition = headTransform.position;
         Vector3 currentLeftHandPosition = leftHandTransform.position;
@@ -64,18 +64,18 @@ public class LoadingStatueFighter : MonoBehaviour
             yield return null;
         }
 
-        //FighterLoader.Instance.InvokeOnFighterInPosition();
+        FighterLoader.Instance.InvokeOnFighterInPosition();
     }
 
     public void MoveToStartPosition(float time)
     {
         StopAllCoroutines();
 
-        //Vector3 headTargetPosition = ReplayManager.Instance.GetHeadTransformLogs()[0].Position;
+        Vector3 headTargetPosition = ReplayController.Instance.GetRecordingData().GetHeadTransformLogs()[0].Position - FighterCoordinator.Instance.offset;
 
-        // Vector3 targetPosition = new Vector3(headTargetPosition.x, 0, headTargetPosition.z);
+        Vector3 targetPosition = new Vector3(headTargetPosition.x, 0, headTargetPosition.z);
 
-        //StartCoroutine(MoveFighterVisualsToTargetPosition(targetPosition, time));
+        StartCoroutine(MoveFighterVisualsToTargetPosition(targetPosition, time));
 
 
     }
@@ -93,11 +93,11 @@ public class LoadingStatueFighter : MonoBehaviour
             yield return null;
         }
 
-        // Vector3 headTargetPosition = ReplayManager.Instance.GetHeadTransformLogs()[0].Position;
-        // Vector3 leftHandTargetPosition = ReplayManager.Instance.GetLeftHandTransformLogs()[0].Position;
-        //  Vector3 rightHandTargetPosition = ReplayManager.Instance.GetRightHandTransformLogs()[0].Position;
+        Vector3 headTargetPosition = ReplayController.Instance.GetRecordingData().GetHeadTransformLogs()[0].Position - FighterCoordinator.Instance.offset;
+        Vector3 leftHandTargetPosition = ReplayController.Instance.GetRecordingData().GetLeftHandTransformLogs()[0].Position - FighterCoordinator.Instance.offset;
+        Vector3 rightHandTargetPosition = ReplayController.Instance.GetRecordingData().GetRightHandTransformLogs()[0].Position - FighterCoordinator.Instance.offset;
 
-        //StartCoroutine(MoveToTargetPosition(headTargetPosition, leftHandTargetPosition, rightHandTargetPosition, time/3));
+        StartCoroutine(MoveToTargetPosition(headTargetPosition, leftHandTargetPosition, rightHandTargetPosition, time / 3));
     }
 
     public void ResetPositions()

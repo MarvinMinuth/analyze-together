@@ -50,26 +50,41 @@ public class FighterLoader : MonoBehaviour
             Debug.LogError("More than one FighterLoader found!");
         }
     }
-    /*
+
     void Start()
     {
         replayController = ReplayController.Instance;
-        if(replayController == null)
+        if (replayController == null)
         {
-           Debug.LogError("No ReplayController found");
+            Debug.LogError("No ReplayController found");
         }
 
-        ReplayManager.Instance.OnReplayLoaded += ReplayManager_OnReplayLoaded;
+        replayController.OnReplayControllerLoaded += ReplayController_OnReplayControllerLoaded;
+
+        if (!NetworkServerSetup.Instance.ServerIsSetup)
+        {
+            HideStatues();
+            NetworkServerSetup.Instance.OnServerSetupComplete += NetworkServerSetup_OnServerSetupComplete;
+        }
+        else
+        {
+            Debug.Log("Server already setup");
+        }
     }
 
-    private void ReplayManager_OnReplayLoaded(object sender, ReplayManager.OnReplayLoadedEventArgs e)
+    private void NetworkServerSetup_OnServerSetupComplete(object sender, EventArgs e)
+    {
+        ShowStatues();
+    }
+
+    private void ReplayController_OnReplayControllerLoaded(object sender, EventArgs e)
     {
         loadingAllowed = false;
         loadedFighter.HideMessage();
         loadedFighter.InteractionsAllowed(false);
         loadedFighter.MoveLoadingStatueToStartPosition(transitionTime);
         //loadedFighter.HideStatue();
-        //loadedFighter.DisableInteractable();
+        loadedFighter.DisableInteractable();
     }
 
     public void InvokeOnFighterInPosition()
@@ -80,10 +95,9 @@ public class FighterLoader : MonoBehaviour
         OnFighterInPosition?.Invoke(this, EventArgs.Empty);
     }
 
-    public void LoadReplay(Savefile saveFile)
+    public void LoadReplay(SaveFile saveFile)
     {
         if (!loadingAllowed) return;
-        if (replayController.ManagerIsLoading()) return;
 
         // Reset currently loaded statue
         if (loadedFighter != null && !loadedFighter.IsFinished())
@@ -95,36 +109,36 @@ public class FighterLoader : MonoBehaviour
 
         switch (saveFile)
         {
-            case Savefile.Tutorial:
+            case SaveFile.Tutorial:
                 loadedFighter = tutorialLoadingStatue;
                 break;
-            case Savefile.TaskOne:
+            case SaveFile.TaskOne:
                 loadedFighter = taskOneLoadingStatue;
                 break;
-            case Savefile.TaskTwo:
+            case SaveFile.TaskTwo:
                 loadedFighter = taskTwoLoadingStatue;
                 break;
-            case Savefile.TaskThree:
+            case SaveFile.TaskThree:
                 loadedFighter = taskThreeLoadingStatue;
                 break;
         }
 
-        replayController.Load(loadedFighter.GetLoadingStatueSO());
+        replayController.InitLoad(loadedFighter.GetLoadingStatueSO().saveFile);
     }
 
     public void FinishLoadedReplay()
     {
-        if(loadedFighter == null) return;
+        if (loadedFighter == null) return;
         loadedFighter.Finish();
 
         OnReplayFinished?.Invoke(this, EventArgs.Empty);
 
         loadedFighter = null;
-        replayController.Unload();
+        replayController.InitUnload();
 
         finishedCounter++;
 
-        if(finishedCounter == 4)
+        if (finishedCounter == 4)
         {
             OnAllReplaysFinished?.Invoke(this, EventArgs.Empty);
         }
@@ -132,7 +146,7 @@ public class FighterLoader : MonoBehaviour
 
     public void ShowMessage(FighterLoadingStatue fighterLoadingStatue)
     {
-        if(statueShowingMessage != null)
+        if (statueShowingMessage != null)
         {
             statueShowingMessage.HideMessage();
         }
@@ -160,5 +174,21 @@ public class FighterLoader : MonoBehaviour
         if (taskTwoLoadingStatue != null && !taskTwoLoadingStatue.IsFinished()) { taskTwoLoadingStatue.InteractionsAllowed(true); }
         if (taskThreeLoadingStatue != null && !taskThreeLoadingStatue.IsFinished()) { taskThreeLoadingStatue.InteractionsAllowed(true); }
     }
-    */
+
+    public void HideStatues()
+    {
+        if (tutorialLoadingStatue != null) { tutorialLoadingStatue.HideStatue(); }
+        if (taskOneLoadingStatue != null) { taskOneLoadingStatue.HideStatue(); }
+        if (taskTwoLoadingStatue != null) { taskTwoLoadingStatue.HideStatue(); }
+        if (taskThreeLoadingStatue != null) { taskThreeLoadingStatue.HideStatue(); }
+    }
+
+    public void ShowStatues()
+    {
+        if (tutorialLoadingStatue != null) { tutorialLoadingStatue.ShowStatue(); }
+        if (taskOneLoadingStatue != null) { taskOneLoadingStatue.ShowStatue(); }
+        if (taskTwoLoadingStatue != null) { taskTwoLoadingStatue.ShowStatue(); }
+        if (taskThreeLoadingStatue != null) { taskThreeLoadingStatue.ShowStatue(); }
+    }
+
 }

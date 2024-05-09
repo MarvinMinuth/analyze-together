@@ -180,6 +180,22 @@ PrefabInstance:
       propertyPath: fightingSceneTransform
       value: 
       objectReference: {fileID: 8491562986436003041}
+    - target: {fileID: 498542178627693482, guid: 2aaa451385c30a846880845b6ea8d6f0, type: 3}
+      propertyPath: taskOneLoadingStatueSO
+      value: 
+      objectReference: {fileID: 11400000, guid: 002d31dbd0a3db047a7a9cf50aef2262, type: 2}
+    - target: {fileID: 498542178627693482, guid: 2aaa451385c30a846880845b6ea8d6f0, type: 3}
+      propertyPath: taskTwoLoadingStatueSO
+      value: 
+      objectReference: {fileID: 11400000, guid: 16d5c0bbdb94b6644a02b2f0e5be8785, type: 2}
+    - target: {fileID: 498542178627693482, guid: 2aaa451385c30a846880845b6ea8d6f0, type: 3}
+      propertyPath: tutorialLoadingStatueSO
+      value: 
+      objectReference: {fileID: 11400000, guid: c0a6eced0d01c6b428f935681da84950, type: 2}
+    - target: {fileID: 498542178627693482, guid: 2aaa451385c30a846880845b6ea8d6f0, type: 3}
+      propertyPath: taskthreeLoadingStatueSO
+      value: 
+      objectReference: {fileID: 11400000, guid: 2fc33f80d3b5faa46a513bdb3967ca0a, type: 2}
     - target: {fileID: 498542178627693483, guid: 2aaa451385c30a846880845b6ea8d6f0, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.92
