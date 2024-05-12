@@ -73,4 +73,10 @@ public class ReplayControlRpcs : NetworkBehaviour
     {
         replayController.InitChangeReplayWindow(minFrame, maxFrame);
     }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ActivateReplayWindowServerRpc()
+    {
+        replayController.InitActivateReplayWindow();
+    }
 }

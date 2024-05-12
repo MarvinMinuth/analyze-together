@@ -30,6 +30,7 @@ public class ReplayController : NetworkBehaviour
         public int newActiveFrame;
     }
 
+    public event EventHandler OnReplayWindowActivated;
     public event EventHandler<OnReplayWindowSetEventArgs> OnReplayWindowSet;
     public class OnReplayWindowSetEventArgs
     {
@@ -50,8 +51,6 @@ public class ReplayController : NetworkBehaviour
         public Direction direction;
     }
     public event EventHandler OnRepeat;
-
-    [SerializeField] private RecordingSO loadOnStartReplaySO;
     private RecordingManager recordingManager;
 
     private bool isDataLoaded = false;
@@ -62,8 +61,6 @@ public class ReplayController : NetworkBehaviour
     Direction playDirection = Direction.Forward;
 
     int activeFrame = 0;
-    int minPlayFrame = 0;
-    int maxPlayFrame = 1;
     float nextUpdate = 0f;
     private RecordingData recordingData;
     private ReplayControllerNetworkVariables replayControllerNetworkVariables;
@@ -71,6 +68,12 @@ public class ReplayController : NetworkBehaviour
     private ReplayControlRpcs replayControlRpcs;
 
     public bool IsInitialized { get; private set; }
+
+    //[Header("Replay Window")]
+    public bool IsReplayWindowActive { get; private set; } = false;
+    public int replayWindowLength = 60;
+    int minPlayFrame = 0;
+    int maxPlayFrame = 1;
 
     private void Awake()
     {
@@ -104,6 +107,7 @@ public class ReplayController : NetworkBehaviour
             replayControllerNetworkVariables.minPlayFrame.OnValueChanged += Server_OnMinPlayFrameChanged;
             replayControllerNetworkVariables.maxPlayFrame.OnValueChanged += Server_OnMaxPlayFrameChanged;
             replayControllerNetworkVariables.saveFile.OnValueChanged += Server_OnSaveFileChanged;
+            replayControllerNetworkVariables.isReplayWindowActive.OnValueChanged += Server_OnReplayWindowActiveChanged;
 
             if (replayControllerNetworkVariables.saveFile.Value != SaveFile.None)
             {
@@ -114,16 +118,16 @@ public class ReplayController : NetworkBehaviour
                 isPlaying = replayControllerNetworkVariables.isPlaying.Value;
                 isLooping = replayControllerNetworkVariables.isLooping.Value;
                 playDirection = replayControllerNetworkVariables.direction.Value;
+                IsReplayWindowActive = replayControllerNetworkVariables.isReplayWindowActive.Value;
 
 
                 if (isPlaying) OnPlay?.Invoke(this, EventArgs.Empty);
                 else OnPause?.Invoke(this, EventArgs.Empty);
 
-                OnReplayWindowSet?.Invoke(this, new OnReplayWindowSetEventArgs
+                if (IsReplayWindowActive)
                 {
-                    minReplayWindowFrame = minPlayFrame,
-                    maxReplayWindowFrame = maxPlayFrame
-                });
+                    OnReplayWindowActivated?.Invoke(this, EventArgs.Empty);
+                }
             }
 
             OnDirectionChanged?.Invoke(this, new OnDirectionChangedEventArgs { direction = replayControllerNetworkVariables.direction.Value });
@@ -133,6 +137,19 @@ public class ReplayController : NetworkBehaviour
         IsInitialized = true;
 
         //FighterLoader.Instance.OnFighterInPosition += FighterLoader_OnFighterInPosition;
+    }
+
+    private void Server_OnReplayWindowActiveChanged(bool previousValue, bool newValue)
+    {
+        IsReplayWindowActive = newValue;
+        if (newValue)
+        {
+            OnReplayWindowActivated?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            OnReplayWindowReset?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private void Server_OnSaveFileChanged(SaveFile previousValue, SaveFile newValue)
@@ -323,12 +340,20 @@ public class ReplayController : NetworkBehaviour
 
         if (IsServer)
         {
-            ChangeReplayWindow(0, recordingData.GetMaxFrame());
+            ResetReplayWindow();
             SetFrame(0);
         }
         else
         {
-            ChangeReplayWindow(replayControllerNetworkVariables.minPlayFrame.Value, replayControllerNetworkVariables.maxPlayFrame.Value);
+            if (replayControllerNetworkVariables.isReplayWindowActive.Value)
+            {
+                OnReplayWindowActivated?.Invoke(this, EventArgs.Empty);
+                ChangeReplayWindow(replayControllerNetworkVariables.minPlayFrame.Value, replayControllerNetworkVariables.maxPlayFrame.Value);
+            }
+            else
+            {
+                ResetReplayWindow();
+            }
             SetFrame(replayControllerNetworkVariables.activeFrame.Value);
         }
     }
@@ -523,6 +548,31 @@ public class ReplayController : NetworkBehaviour
         return isLooping;
     }
 
+    public void InitActivateReplayWindow()
+    {
+        if (!isDataLoaded)
+        {
+            return;
+        }
+
+        if (IsServer)
+        {
+            ActivateReplayWindow();
+        }
+        else
+        {
+            replayControlRpcs.ActivateReplayWindowServerRpc();
+        }
+    }
+
+    private void ActivateReplayWindow()
+    {
+        IsReplayWindowActive = true;
+        minPlayFrame = activeFrame;
+        maxPlayFrame = activeFrame + replayWindowLength;
+        OnReplayWindowActivated?.Invoke(this, EventArgs.Empty);
+    }
+
     public void InitChangeReplayWindow(int minFrame, int maxFrame)
     {
         if (!isDataLoaded)
@@ -549,6 +599,8 @@ public class ReplayController : NetworkBehaviour
         if (activeFrame < minPlayFrame) SetFrame(minPlayFrame);
         if (activeFrame > maxPlayFrame) SetFrame(maxPlayFrame);
 
+        IsReplayWindowActive = true;
+
         OnReplayWindowSet?.Invoke(this, new OnReplayWindowSetEventArgs
         {
             minReplayWindowFrame = minFrame,
@@ -572,6 +624,8 @@ public class ReplayController : NetworkBehaviour
     {
         minPlayFrame = 0;
         maxPlayFrame = recordingData.GetMaxFrame();
+
+        IsReplayWindowActive = false;
 
         OnReplayWindowReset?.Invoke(this, EventArgs.Empty);
     }

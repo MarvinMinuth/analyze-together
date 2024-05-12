@@ -17,6 +17,8 @@ public class ReplayControllerNetworkVariables : NetworkBehaviour
     public NetworkVariable<Direction> direction = new NetworkVariable<Direction>();
     public NetworkVariable<bool> isLooping = new NetworkVariable<bool>();
 
+    public NetworkVariable<bool> isReplayWindowActive = new NetworkVariable<bool>();
+
     private void Awake()
     {
         Instance = this;
@@ -37,9 +39,17 @@ public class ReplayControllerNetworkVariables : NetworkBehaviour
             replayController.OnPause += ReplayController_OnPause;
             replayController.OnDirectionChanged += ReplayController_OnDirectionChanged;
             replayController.OnRepeat += ReplayController_OnRepeat;
+            replayController.OnReplayWindowActivated += ReplayController_OnReplayWindowActivated;
             replayController.OnReplayWindowSet += ReplayController_OnReplayWindowSet;
             replayController.OnReplayWindowReset += ReplayController_OnReplayWindowReset;
         }
+    }
+
+    private void ReplayController_OnReplayWindowActivated(object sender, System.EventArgs e)
+    {
+        minPlayFrame.Value = replayController.GetMinPlayFrame();
+        maxPlayFrame.Value = replayController.GetMaxPlayFrame();
+        isReplayWindowActive.Value = true;
     }
 
     private void ReplayController_OnReplayLoad(object sender, System.EventArgs e)
@@ -54,6 +64,7 @@ public class ReplayControllerNetworkVariables : NetworkBehaviour
         maxPlayFrame.Value = 1;
         activeFrame.Value = 0;
         isPlaying.Value = false;
+        isReplayWindowActive.Value = false;
     }
 
     private void ReplayController_OnFrameChanged(object sender, ReplayController.OnActiveFrameChangedEventArgs e)
@@ -91,5 +102,6 @@ public class ReplayControllerNetworkVariables : NetworkBehaviour
     {
         minPlayFrame.Value = 0;
         maxPlayFrame.Value = replayController.GetMaxFrame();
+        isReplayWindowActive.Value = false;
     }
 }

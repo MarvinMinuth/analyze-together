@@ -10,6 +10,8 @@ public class ReplayWindowController : MonoBehaviour
     [SerializeField] private Slider minSlider;
     [SerializeField] private float minDistance = 30;
 
+    [SerializeField] private bool maxSliderFollowsMin = true;
+
     private ReplayController replayController;
 
     public float MaxPlayFrame { get; private set; }
@@ -26,13 +28,20 @@ public class ReplayWindowController : MonoBehaviour
 
         if (replayController.IsInitialized)
         {
-            Debug.Log("ReplayController is initialized");
             maxSlider.maxValue = replayController.GetMaxFrame();
             MaxPlayFrame = replayController.GetMaxPlayFrame();
-            maxSlider.value = MaxPlayFrame;
             minSlider.maxValue = replayController.GetMaxFrame();
             MinPlayFrame = replayController.GetMinPlayFrame();
             minSlider.value = MinPlayFrame;
+
+            if (maxSliderFollowsMin)
+            {
+                maxSlider.value = minSlider.value + minDistance;
+            }
+            else
+            {
+                maxSlider.value = MaxPlayFrame;
+            }
         }
         else
         {
@@ -50,10 +59,18 @@ public class ReplayWindowController : MonoBehaviour
     {
         maxSlider.maxValue = replayController.GetMaxFrame();
         MaxPlayFrame = replayController.GetMaxPlayFrame();
-        maxSlider.value = replayController.GetMaxPlayFrame();
         minSlider.maxValue = replayController.GetMaxFrame();
         MinPlayFrame = 0;
         minSlider.value = 0;
+
+        if (maxSliderFollowsMin)
+        {
+            maxSlider.value = minSlider.value + minDistance;
+        }
+        else
+        {
+            maxSlider.value = MaxPlayFrame;
+        }
     }
 
     private void ReplayController_OnReplayControllerUnload(object sender, System.EventArgs e)
@@ -68,25 +85,50 @@ public class ReplayWindowController : MonoBehaviour
 
     private void ReplayController_OnReplayWindowSet(object sender, ReplayController.OnReplayWindowSetEventArgs e)
     {
-        MaxPlayFrame = e.maxReplayWindowFrame;
-        maxSlider.value = e.maxReplayWindowFrame;
-
         MinPlayFrame = e.minReplayWindowFrame;
         minSlider.value = e.minReplayWindowFrame;
+
+        if (maxSliderFollowsMin)
+        {
+            MaxPlayFrame = e.minReplayWindowFrame + minDistance;
+            maxSlider.value = e.minReplayWindowFrame + minDistance;
+        }
+        else
+        {
+            MaxPlayFrame = e.maxReplayWindowFrame;
+            maxSlider.value = e.maxReplayWindowFrame;
+        }
     }
 
     private void ReplayController_OnReplayWindowReset(object sender, System.EventArgs e)
     {
-        MaxPlayFrame = replayController.GetMaxFrame();
-        maxSlider.value = replayController.GetMaxFrame();
-
         MinPlayFrame = 0;
         minSlider.value = 0;
+
+        if (maxSliderFollowsMin)
+        {
+            MaxPlayFrame = minDistance;
+            maxSlider.value = minDistance;
+        }
+        else
+        {
+            MaxPlayFrame = replayController.GetMaxFrame();
+            maxSlider.value = replayController.GetMaxFrame();
+        }
     }
 
     public void ChangeReplayWindow()
     {
+        if (maxSliderFollowsMin)
+        {
+            maxSlider.value = minSlider.value + minDistance;
+        }
         ReplayController.Instance.InitChangeReplayWindow((int)minSlider.value, (int)maxSlider.value);
+    }
+
+    public void ChangeReplayWindow(int min, int max)
+    {
+        ReplayController.Instance.InitChangeReplayWindow(min, max);
     }
 
     public float GetMinDistance()

@@ -42,7 +42,7 @@ public class NetworkServerSetup : NetworkBehaviour
             Transform fightingScene = Instantiate(fightingScenePrefab, Vector3.zero, Quaternion.identity);
             fightingScene.GetComponent<NetworkObject>().Spawn();
 
-            loadButton.Setup();
+            //loadButton.Setup();
 
             ServerIsSetup = true;
             OnServerSetupComplete?.Invoke(this, EventArgs.Empty);
