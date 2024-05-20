@@ -59,7 +59,7 @@ public class FighterLoader : MonoBehaviour
             Debug.LogError("No ReplayController found");
         }
 
-        replayController.OnReplayControllerLoaded += ReplayController_OnReplayControllerLoaded;
+        replayController.OnReplayDataReady += ReplayController_OnReplayControllerLoaded;
 
         if (!NetworkServerSetup.Instance.ServerIsSetup)
         {

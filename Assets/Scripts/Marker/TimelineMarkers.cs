@@ -56,6 +56,10 @@ public class TimelineMarkers : MonoBehaviour
 
     public void CreateMarkers()
     {
+        if (unsuccessfulFightCollisionLogDic == null)
+        {
+            return;
+        }
         foreach (KeyValuePair<int, FightCollisionLog[]> log in unsuccessfulFightCollisionLogDic)
         {
             SetMarker(timeline, log.Key);

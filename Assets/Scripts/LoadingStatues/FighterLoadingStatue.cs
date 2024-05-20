@@ -9,7 +9,7 @@ public class FighterLoadingStatue : MonoBehaviour
     [SerializeField] private LoadingStatueFighterVisuals loadingStatueFighterVisuals;
     [SerializeField] private LoadingStatueFighter loadingStatueFighter;
     [SerializeField] private LoadingStatueUI loadingStatueUI;
-    [SerializeField] private Transform spotLight;
+    //[SerializeField] private Transform spotLight;
     [SerializeField] private LoadingStatueCube loadingStatueCube;
 
     private FighterLoader fighterLoader;
@@ -33,14 +33,14 @@ public class FighterLoadingStatue : MonoBehaviour
     {
         HideMessage();
         interactable.enabled = false;
-        spotLight.gameObject.SetActive(false);
+        //spotLight.gameObject.SetActive(false);
         loadingStatueFighterVisuals.Hide();
     }
 
     public void ShowStatue()
     {
         interactable.enabled = true;
-        spotLight.gameObject.SetActive(true);
+        //spotLight.gameObject.SetActive(true);
         loadingStatueFighterVisuals.Show();
     }
     public void LoadReplay()

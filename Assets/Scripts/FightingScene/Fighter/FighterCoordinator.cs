@@ -97,7 +97,7 @@ public class FighterCoordinator : NetworkBehaviour
         rightHandTransform.position = rightHandTransformLogs[newFrame].Position - offset;
         rightHandTransform.rotation = Quaternion.Euler(rightHandTransformLogs[newFrame].Rotation);
 
-        //fighterVisuals.ResetVisuals();
+        fighterVisuals.ResetVisuals();
     }
 
     private void ReplayController_OnReplayDataReady(object sender, EventArgs e)

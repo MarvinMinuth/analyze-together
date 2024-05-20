@@ -36,4 +36,14 @@ public class FighterBodyPartVisuals : MonoBehaviour, IVisuals
     {
         return isVisible;
     }
+
+    public void SetLocalPosition(Vector3 position)
+    {
+        transform.localPosition = position;
+    }
+
+    public void SetLocalRotation(Quaternion rotation)
+    {
+        transform.localRotation = rotation;
+    }
 }

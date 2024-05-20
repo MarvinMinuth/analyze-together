@@ -105,17 +105,17 @@ public class FighterVisuals : MonoBehaviour
         rightHandVisuals.position = transformLog.Position;
         rightHandVisuals.rotation = Quaternion.Euler(transformLog.Rotation);
     }
-
+    */
     public void ResetVisuals()
     {
-        headVisuals.localPosition = Vector3.zero;
-        headVisuals.localRotation = Quaternion.identity;
+        headVisuals.SetLocalPosition(Vector3.zero);
+        headVisuals.SetLocalRotation(Quaternion.identity);
 
-        leftHandVisuals.localPosition = Vector3.zero;
-        leftHandVisuals.localRotation = Quaternion.identity;
+        leftHandVisuals.SetLocalPosition(Vector3.zero);
+        leftHandVisuals.SetLocalRotation(Quaternion.identity);
 
-        rightHandVisuals.localPosition = Vector3.zero;
-        rightHandVisuals.localRotation = Quaternion.identity;
+        rightHandVisuals.SetLocalPosition(Vector3.zero);
+        rightHandVisuals.SetLocalRotation(Quaternion.identity);
     }
-    */
+
 }

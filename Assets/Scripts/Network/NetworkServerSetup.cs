@@ -43,9 +43,8 @@ public class NetworkServerSetup : NetworkBehaviour
             fightingScene.GetComponent<NetworkObject>().Spawn();
 
             //loadButton.Setup();
-
-            ServerIsSetup = true;
-            OnServerSetupComplete?.Invoke(this, EventArgs.Empty);
         }
+        ServerIsSetup = true;
+        OnServerSetupComplete?.Invoke(this, EventArgs.Empty);
     }
 }

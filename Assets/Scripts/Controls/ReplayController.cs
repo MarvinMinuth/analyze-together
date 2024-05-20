@@ -75,6 +75,8 @@ public class ReplayController : NetworkBehaviour
     int minPlayFrame = 0;
     int maxPlayFrame = 1;
 
+    private bool fighterInPosition = false;
+
     private void Awake()
     {
         if (Instance == null)
@@ -111,7 +113,7 @@ public class ReplayController : NetworkBehaviour
 
             if (replayControllerNetworkVariables.saveFile.Value != SaveFile.None)
             {
-                Load(replayControllerNetworkVariables.saveFile.Value);
+                FighterLoader.Instance.LoadReplay(replayControllerNetworkVariables.saveFile.Value);
                 activeFrame = replayControllerNetworkVariables.activeFrame.Value;
                 maxPlayFrame = replayControllerNetworkVariables.maxPlayFrame.Value;
                 minPlayFrame = replayControllerNetworkVariables.minPlayFrame.Value;
@@ -136,7 +138,7 @@ public class ReplayController : NetworkBehaviour
 
         IsInitialized = true;
 
-        //FighterLoader.Instance.OnFighterInPosition += FighterLoader_OnFighterInPosition;
+        FighterLoader.Instance.OnFighterInPosition += FighterLoader_OnFighterInPosition;
     }
 
     private void Server_OnReplayWindowActiveChanged(bool previousValue, bool newValue)
@@ -161,6 +163,7 @@ public class ReplayController : NetworkBehaviour
         }
         else
         {
+            FighterLoader.Instance.LoadReplay(newValue);
             Load(newValue);
         }
     }
@@ -213,7 +216,29 @@ public class ReplayController : NetworkBehaviour
     private void FighterLoader_OnFighterInPosition(object sender, EventArgs e)
     {
         OnReplayControllerLoaded?.Invoke(this, EventArgs.Empty);
-        Play();
+        fighterInPosition = true;
+        if (IsServer)
+        {
+            Play();
+        }
+        else
+        {
+            activeFrame = replayControllerNetworkVariables.activeFrame.Value;
+            maxPlayFrame = replayControllerNetworkVariables.maxPlayFrame.Value;
+            minPlayFrame = replayControllerNetworkVariables.minPlayFrame.Value;
+            isPlaying = replayControllerNetworkVariables.isPlaying.Value;
+            isLooping = replayControllerNetworkVariables.isLooping.Value;
+            playDirection = replayControllerNetworkVariables.direction.Value;
+            IsReplayWindowActive = replayControllerNetworkVariables.isReplayWindowActive.Value;
+
+            if (isPlaying) OnPlay?.Invoke(this, EventArgs.Empty);
+            else OnPause?.Invoke(this, EventArgs.Empty);
+
+            if (IsReplayWindowActive)
+            {
+                OnReplayWindowActivated?.Invoke(this, EventArgs.Empty);
+            }
+        }
     }
 
     private void RecordingManager_OnRecordingLoaded(object sender, RecordingManager.OnRecordingLoadedEventArgs e)
@@ -246,7 +271,7 @@ public class ReplayController : NetworkBehaviour
 
     public void InitPlay()
     {
-        if (!isDataLoaded)
+        if (!isDataLoaded || !fighterInPosition)
         {
             Debug.Log("No file loaded");
             return;
@@ -270,7 +295,7 @@ public class ReplayController : NetworkBehaviour
 
     public void InitPause()
     {
-        if (!isDataLoaded)
+        if (!isDataLoaded || !fighterInPosition)
         {
             Debug.Log("No file loaded");
             return;
@@ -294,7 +319,7 @@ public class ReplayController : NetworkBehaviour
     public void InitStop()
     {
         // pauses replay, resets all options
-        if (!isDataLoaded)
+        if (!isDataLoaded || !fighterInPosition)
         {
             Debug.Log("No file loaded");
             return;
@@ -335,7 +360,8 @@ public class ReplayController : NetworkBehaviour
     {
         if (isDataLoaded) { Unload(); }
         recordingManager.Load(saveFile);
-        OnReplayControllerLoaded?.Invoke(this, EventArgs.Empty);
+        replayControllerNetworkVariables.saveFile.Value = saveFile;
+        //OnReplayControllerLoaded?.Invoke(this, EventArgs.Empty);
         IsInitialized = true;
 
         if (IsServer)
@@ -360,7 +386,7 @@ public class ReplayController : NetworkBehaviour
 
     public void InitSetFrame(int newFrame)
     {
-        if (!isDataLoaded)
+        if (!isDataLoaded || !fighterInPosition)
         {
             Debug.Log("No file loaded");
             return;
@@ -435,7 +461,7 @@ public class ReplayController : NetworkBehaviour
 
     public void InitUnload()
     {
-        if (IsServer)
+        if (IsServer && fighterInPosition)
         {
             Unload();
         }
@@ -458,6 +484,7 @@ public class ReplayController : NetworkBehaviour
         recordingData = null;
         recordingManager.Unload();
         isDataLoaded = false;
+        fighterInPosition = false;
     }
 
     public bool IsPlaying()
@@ -550,7 +577,7 @@ public class ReplayController : NetworkBehaviour
 
     public void InitActivateReplayWindow()
     {
-        if (!isDataLoaded)
+        if (!isDataLoaded || !fighterInPosition)
         {
             return;
         }
@@ -575,7 +602,7 @@ public class ReplayController : NetworkBehaviour
 
     public void InitChangeReplayWindow(int minFrame, int maxFrame)
     {
-        if (!isDataLoaded)
+        if (!isDataLoaded || !fighterInPosition)
         {
             Debug.Log("No file loaded");
             return;

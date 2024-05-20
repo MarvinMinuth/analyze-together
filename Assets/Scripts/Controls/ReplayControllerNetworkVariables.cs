@@ -32,7 +32,7 @@ public class ReplayControllerNetworkVariables : NetworkBehaviour
         {
             replayController = ReplayController.Instance;
 
-            replayController.OnReplayControllerLoaded += ReplayController_OnReplayLoad;
+            //replayController.OnReplayControllerLoaded += ReplayController_OnReplayLoad;
             replayController.OnReplayControllerUnload += ReplayController_OnReplayControllerUnload;
             replayController.OnActiveFrameChanged += ReplayController_OnFrameChanged;
             replayController.OnPlay += ReplayController_OnPlay;
